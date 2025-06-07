@@ -39,6 +39,8 @@ export const useAudioPlayer = ({ content, onTrackEnd, onError }: UseAudioPlayerP
 
   // Handle audio URL processing - only when content.url changes
   useEffect(() => {
+    console.log('Processing audio URL:', content.url);
+    
     if (YouTubeService.isYouTubeUrl(content.url)) {
       // For YouTube URLs, show a clear error message
       const errorMsg = 'YouTube playback is not currently supported. Please use direct audio file URLs (.mp3, .wav, etc.) for music playback.';
@@ -51,28 +53,52 @@ export const useAudioPlayer = ({ content, onTrackEnd, onError }: UseAudioPlayerP
       onError?.(errorMsg);
     } else {
       // For direct audio URLs (including Supabase storage), proceed normally
+      console.log('Setting extracted audio URL:', content.url);
       updateState({ 
         extractedAudioUrl: content.url,
         error: null,
         isLoading: true 
       });
     }
-  }, [content.url, onError]); // Remove updateState from dependencies to prevent infinite loop
+  }, [content.url, onError]);
 
   useEffect(() => {
     const audio = audioRef.current;
-    if (!audio || !state.extractedAudioUrl) return;
+    if (!audio || !state.extractedAudioUrl) {
+      console.log('Audio element or URL not ready:', { audio: !!audio, url: state.extractedAudioUrl });
+      return;
+    }
 
+    console.log('Setting up audio element with URL:', state.extractedAudioUrl);
+    
     // Update audio source when extracted URL is available
     audio.src = state.extractedAudioUrl;
     
     // Add CORS settings for Supabase storage
     audio.crossOrigin = 'anonymous';
+    
+    // Force load the audio
+    audio.load();
 
     const handleTimeUpdate = () => updateState({ currentTime: audio.currentTime });
-    const handleDurationChange = () => updateState({ duration: audio.duration, isLoading: false });
-    const handleCanPlay = () => updateState({ isLoading: false, error: null });
-    const handleError = () => {
+    const handleDurationChange = () => {
+      console.log('Audio duration loaded:', audio.duration);
+      updateState({ duration: audio.duration, isLoading: false });
+    };
+    const handleCanPlay = () => {
+      console.log('Audio can play');
+      updateState({ isLoading: false, error: null });
+    };
+    const handleLoadStart = () => {
+      console.log('Audio load started');
+      updateState({ isLoading: true });
+    };
+    const handleLoadedData = () => {
+      console.log('Audio data loaded');
+      updateState({ isLoading: false });
+    };
+    const handleError = (e: Event) => {
+      console.error('Audio error:', e);
       const errorMsg = 'Failed to load audio file. Please check if the URL is a valid audio file.';
       updateState({ error: errorMsg, isLoading: false });
       onError?.(errorMsg);
@@ -85,6 +111,8 @@ export const useAudioPlayer = ({ content, onTrackEnd, onError }: UseAudioPlayerP
     audio.addEventListener('timeupdate', handleTimeUpdate);
     audio.addEventListener('loadedmetadata', handleDurationChange);
     audio.addEventListener('canplay', handleCanPlay);
+    audio.addEventListener('loadstart', handleLoadStart);
+    audio.addEventListener('loadeddata', handleLoadedData);
     audio.addEventListener('error', handleError);
     audio.addEventListener('ended', handleEnded);
 
@@ -92,6 +120,8 @@ export const useAudioPlayer = ({ content, onTrackEnd, onError }: UseAudioPlayerP
       audio.removeEventListener('timeupdate', handleTimeUpdate);
       audio.removeEventListener('loadedmetadata', handleDurationChange);
       audio.removeEventListener('canplay', handleCanPlay);
+      audio.removeEventListener('loadstart', handleLoadStart);
+      audio.removeEventListener('loadeddata', handleLoadedData);
       audio.removeEventListener('error', handleError);
       audio.removeEventListener('ended', handleEnded);
     };
@@ -99,12 +129,18 @@ export const useAudioPlayer = ({ content, onTrackEnd, onError }: UseAudioPlayerP
 
   const play = useCallback(async () => {
     const audio = audioRef.current;
-    if (!audio || state.error || !state.extractedAudioUrl) return;
+    if (!audio || state.error || !state.extractedAudioUrl) {
+      console.log('Cannot play:', { audio: !!audio, error: state.error, url: state.extractedAudioUrl });
+      return;
+    }
 
     try {
+      console.log('Attempting to play audio');
       await audio.play();
       updateState({ isPlaying: true });
+      console.log('Audio playing successfully');
     } catch (error) {
+      console.error('Play error:', error);
       const errorMsg = 'Failed to play audio. Please try a different audio file.';
       updateState({ error: errorMsg });
       onError?.(errorMsg);
