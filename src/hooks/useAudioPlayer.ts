@@ -33,84 +33,87 @@ export const useAudioPlayer = ({ content, onTrackEnd, onError }: UseAudioPlayerP
     extractedAudioUrl: null,
   });
 
-  // Stable updateState function that won't cause re-renders
-  const updateState = useCallback((updates: Partial<AudioPlayerState>) => {
-    setState(prev => ({ ...prev, ...updates }));
-  }, []);
-
-  // Handle audio URL processing - only when content.url changes
+  // Process the content URL only when it changes
   useEffect(() => {
-    console.log('Processing audio URL:', content.url);
+    console.log('Processing new content URL:', content.url);
     
     if (YouTubeService.isYouTubeUrl(content.url)) {
-      // For YouTube URLs, show a clear error message
       const errorMsg = 'YouTube playback is not currently supported. Please use direct audio file URLs (.mp3, .wav, etc.) for music playback.';
-      setState(prev => ({ 
-        ...prev,
-        error: errorMsg, 
-        isLoading: false, 
+      setState({
+        isPlaying: false,
+        currentTime: 0,
+        duration: 0,
+        volume: 1,
+        isLoading: false,
+        error: errorMsg,
         isExtracting: false,
-        extractedAudioUrl: null
-      }));
+        extractedAudioUrl: null,
+      });
       onError?.(errorMsg);
     } else {
-      // For direct audio URLs (including Supabase storage), proceed normally
-      console.log('Setting extracted audio URL:', content.url);
-      setState(prev => ({ 
+      // For direct audio URLs, set them directly
+      console.log('Setting up direct audio URL:', content.url);
+      setState(prev => ({
         ...prev,
         extractedAudioUrl: content.url,
         error: null,
-        isLoading: true 
+        isLoading: true,
+        isExtracting: false
       }));
     }
-  }, [content.url, onError]); // Removed updateState from dependencies
+  }, [content.url, onError]);
 
+  // Set up audio element when URL is ready
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio || !state.extractedAudioUrl) {
-      console.log('Audio element or URL not ready:', { audio: !!audio, url: state.extractedAudioUrl });
       return;
     }
 
     console.log('Setting up audio element with URL:', state.extractedAudioUrl);
     
-    // Update audio source when extracted URL is available
-    audio.src = state.extractedAudioUrl;
+    // Clear any existing event listeners
+    const handleTimeUpdate = () => {
+      setState(prev => ({ ...prev, currentTime: audio.currentTime }));
+    };
     
-    // Add CORS settings for Supabase storage
-    audio.crossOrigin = 'anonymous';
-    
-    // Force load the audio
-    audio.load();
-
-    const handleTimeUpdate = () => updateState({ currentTime: audio.currentTime });
     const handleDurationChange = () => {
       console.log('Audio duration loaded:', audio.duration);
-      updateState({ duration: audio.duration, isLoading: false });
+      setState(prev => ({ ...prev, duration: audio.duration, isLoading: false }));
     };
+    
     const handleCanPlay = () => {
       console.log('Audio can play');
-      updateState({ isLoading: false, error: null });
+      setState(prev => ({ ...prev, isLoading: false, error: null }));
     };
+    
     const handleLoadStart = () => {
       console.log('Audio load started');
-      updateState({ isLoading: true });
+      setState(prev => ({ ...prev, isLoading: true }));
     };
+    
     const handleLoadedData = () => {
       console.log('Audio data loaded');
-      updateState({ isLoading: false });
+      setState(prev => ({ ...prev, isLoading: false }));
     };
+    
     const handleError = (e: Event) => {
       console.error('Audio error:', e);
       const errorMsg = 'Failed to load audio file. Please check if the URL is a valid audio file.';
-      updateState({ error: errorMsg, isLoading: false });
+      setState(prev => ({ ...prev, error: errorMsg, isLoading: false }));
       onError?.(errorMsg);
     };
+    
     const handleEnded = () => {
-      updateState({ isPlaying: false });
+      setState(prev => ({ ...prev, isPlaying: false }));
       onTrackEnd?.();
     };
 
+    // Set up the audio element
+    audio.src = state.extractedAudioUrl;
+    audio.crossOrigin = 'anonymous';
+    
+    // Add event listeners
     audio.addEventListener('timeupdate', handleTimeUpdate);
     audio.addEventListener('loadedmetadata', handleDurationChange);
     audio.addEventListener('canplay', handleCanPlay);
@@ -118,6 +121,9 @@ export const useAudioPlayer = ({ content, onTrackEnd, onError }: UseAudioPlayerP
     audio.addEventListener('loadeddata', handleLoadedData);
     audio.addEventListener('error', handleError);
     audio.addEventListener('ended', handleEnded);
+
+    // Force load the audio
+    audio.load();
 
     return () => {
       audio.removeEventListener('timeupdate', handleTimeUpdate);
@@ -128,7 +134,7 @@ export const useAudioPlayer = ({ content, onTrackEnd, onError }: UseAudioPlayerP
       audio.removeEventListener('error', handleError);
       audio.removeEventListener('ended', handleEnded);
     };
-  }, [state.extractedAudioUrl, updateState, onTrackEnd, onError]);
+  }, [state.extractedAudioUrl, onTrackEnd, onError]);
 
   const play = useCallback(async () => {
     const audio = audioRef.current;
@@ -140,39 +146,39 @@ export const useAudioPlayer = ({ content, onTrackEnd, onError }: UseAudioPlayerP
     try {
       console.log('Attempting to play audio');
       await audio.play();
-      updateState({ isPlaying: true });
+      setState(prev => ({ ...prev, isPlaying: true }));
       console.log('Audio playing successfully');
     } catch (error) {
       console.error('Play error:', error);
       const errorMsg = 'Failed to play audio. Please try a different audio file.';
-      updateState({ error: errorMsg });
+      setState(prev => ({ ...prev, error: errorMsg }));
       onError?.(errorMsg);
     }
-  }, [state.error, state.extractedAudioUrl, updateState, onError]);
+  }, [state.error, state.extractedAudioUrl, onError]);
 
   const pause = useCallback(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
     audio.pause();
-    updateState({ isPlaying: false });
-  }, [updateState]);
+    setState(prev => ({ ...prev, isPlaying: false }));
+  }, []);
 
   const seek = useCallback((time: number) => {
     const audio = audioRef.current;
     if (!audio || state.error) return;
 
     audio.currentTime = time;
-    updateState({ currentTime: time });
-  }, [state.error, updateState]);
+    setState(prev => ({ ...prev, currentTime: time }));
+  }, [state.error]);
 
   const setVolume = useCallback((volume: number) => {
     const audio = audioRef.current;
     if (!audio) return;
 
     audio.volume = volume;
-    updateState({ volume });
-  }, [updateState]);
+    setState(prev => ({ ...prev, volume }));
+  }, []);
 
   const togglePlayPause = useCallback(() => {
     if (state.isPlaying) {
