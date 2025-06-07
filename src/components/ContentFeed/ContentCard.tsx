@@ -3,24 +3,15 @@ import React, { useState } from 'react';
 import { useAdaptiveUI } from '../../contexts/AdaptiveUIContext';
 import { Play, BookOpen, Music, Heart, Sparkles } from 'lucide-react';
 import MusicArtwork from '../ui/music-artwork';
-
-interface Content {
-  id: number;
-  type: string;
-  title: string;
-  description: string;
-  emotions: string[];
-  thumbnail: string;
-  duration: string;
-  matchScore: number;
-}
+import { Content } from '../../services/contentService';
 
 interface ContentCardProps {
   content: Content;
   isPrimaryMatch: boolean;
+  onPlay: (content: Content) => void;
 }
 
-const ContentCard: React.FC<ContentCardProps> = ({ content, isPrimaryMatch }) => {
+const ContentCard: React.FC<ContentCardProps> = ({ content, isPrimaryMatch, onPlay }) => {
   const { theme } = useAdaptiveUI();
   const [isLiked, setIsLiked] = useState(false);
 
@@ -39,24 +30,13 @@ const ContentCard: React.FC<ContentCardProps> = ({ content, isPrimaryMatch }) =>
 
   const handleContentClick = () => {
     console.log(`Opening ${content.type}: ${content.title}`);
+    onPlay(content);
   };
 
   const handleLike = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsLiked(!isLiked);
     console.log(`${isLiked ? 'Unliked' : 'Liked'} content: ${content.title}`);
-  };
-
-  const getMusicAlbumArt = () => {
-    const albumArts = [
-      "https://i.scdn.co/image/ab67616d0000b273b33d46dfa2635a47eebf63b2",
-      "https://i.scdn.co/image/ab67616d0000b273c8b444df094279e70d0ed856",
-      "https://upload.wikimedia.org/wikipedia/en/2/23/Pharrell_Williams_-_Happy.jpg",
-      "https://i.scdn.co/image/ab67616d0000b273ee7c4fd0b050b0f3e8a8c7e8",
-      "https://i.scdn.co/image/ab67616d0000b2734ce8b4e42588bf18182a1ad0",
-      "https://i.scdn.co/image/ab67616d0000b273f2248cf6dad1d6c062587249"
-    ];
-    return albumArts[content.id % albumArts.length];
   };
 
   // Music content with existing clean layout
@@ -72,7 +52,7 @@ const ContentCard: React.FC<ContentCardProps> = ({ content, isPrimaryMatch }) =>
       >
         {isPrimaryMatch && (
           <div className="absolute -top-3 -right-3 px-3 py-1 rounded-full text-sm font-bold bg-purple-500 text-white shadow-lg">
-            {Math.round(content.matchScore * 100)}% match
+            Perfect Match
           </div>
         )}
 
@@ -81,7 +61,7 @@ const ContentCard: React.FC<ContentCardProps> = ({ content, isPrimaryMatch }) =>
             <MusicArtwork
               artist="Various Artists"
               music={content.title}
-              albumArt={getMusicAlbumArt()}
+              albumArt={content.thumbnail_url || '/placeholder.svg'}
               isSong={true}
               isLoading={false}
             />
@@ -147,18 +127,26 @@ const ContentCard: React.FC<ContentCardProps> = ({ content, isPrimaryMatch }) =>
     >
       {isPrimaryMatch && (
         <div className="absolute -top-3 -right-3 px-3 py-1 rounded-full text-sm font-bold bg-purple-500 text-white shadow-lg">
-          {Math.round(content.matchScore * 100)}% match
+          Perfect Match
         </div>
       )}
 
       <div className="space-y-4">
-        {/* Content thumbnail/icon */}
+        {/* Content thumbnail */}
         <div className="flex justify-center">
-          <div className={`w-16 h-16 rounded-full flex items-center justify-center text-3xl ${
-            isPrimaryMatch ? 'bg-purple-100' : 'bg-blue-100'
-          }`}>
-            {content.thumbnail}
-          </div>
+          {content.thumbnail_url ? (
+            <img
+              src={content.thumbnail_url}
+              alt={content.title}
+              className="w-16 h-16 rounded-full object-cover"
+            />
+          ) : (
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center text-3xl ${
+              isPrimaryMatch ? 'bg-purple-100' : 'bg-blue-100'
+            }`}>
+              {content.type === 'video' ? '🎬' : '📖'}
+            </div>
+          )}
         </div>
         
         <div className="text-center space-y-3">

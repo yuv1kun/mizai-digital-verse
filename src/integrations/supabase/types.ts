@@ -9,7 +9,143 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      content: {
+        Row: {
+          created_at: string
+          description: string | null
+          duration: string | null
+          emotions: string[] | null
+          id: string
+          metadata: Json | null
+          thumbnail_url: string | null
+          title: string
+          type: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          duration?: string | null
+          emotions?: string[] | null
+          id?: string
+          metadata?: Json | null
+          thumbnail_url?: string | null
+          title: string
+          type: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          duration?: string | null
+          emotions?: string[] | null
+          id?: string
+          metadata?: Json | null
+          thumbnail_url?: string | null
+          title?: string
+          type?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
+      mood_history: {
+        Row: {
+          arousal_level: number
+          created_at: string
+          id: string
+          mood_data: Json
+          primary_emotion: string
+          user_id: string
+        }
+        Insert: {
+          arousal_level: number
+          created_at?: string
+          id?: string
+          mood_data: Json
+          primary_emotion: string
+          user_id: string
+        }
+        Update: {
+          arousal_level?: number
+          created_at?: string
+          id?: string
+          mood_data?: Json
+          primary_emotion?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      playlists: {
+        Row: {
+          content_ids: string[] | null
+          created_at: string
+          id: string
+          is_auto_generated: boolean | null
+          mood_context: string | null
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content_ids?: string[] | null
+          created_at?: string
+          id?: string
+          is_auto_generated?: boolean | null
+          mood_context?: string | null
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content_ids?: string[] | null
+          created_at?: string
+          id?: string
+          is_auto_generated?: boolean | null
+          mood_context?: string | null
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_interactions: {
+        Row: {
+          content_id: string
+          created_at: string
+          id: string
+          interaction_type: string
+          progress_seconds: number | null
+          user_id: string
+        }
+        Insert: {
+          content_id: string
+          created_at?: string
+          id?: string
+          interaction_type: string
+          progress_seconds?: number | null
+          user_id: string
+        }
+        Update: {
+          content_id?: string
+          created_at?: string
+          id?: string
+          interaction_type?: string
+          progress_seconds?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_interactions_content_id_fkey"
+            columns: ["content_id"]
+            isOneToOne: false
+            referencedRelation: "content"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

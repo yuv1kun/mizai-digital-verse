@@ -1,92 +1,93 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useMood } from '../../contexts/MoodContext';
 import { useAdaptiveUI } from '../../contexts/AdaptiveUIContext';
 import ContentCard from './ContentCard';
 import RecommendationExplanation from './RecommendationExplanation';
+import MusicPlayer from '../MediaPlayers/MusicPlayer';
+import VideoPlayer from '../MediaPlayers/VideoPlayer';
+import ArticleReader from '../MediaPlayers/ArticleReader';
 import { TextShimmer } from '../ui/text-shimmer';
 import { Play, BookOpen, Music } from 'lucide-react';
-
-// Mock content data with emotion mappings
-const mockContent = [
-  {
-    id: 1,
-    type: 'video',
-    title: 'Sunrise Meditation: 10 Minutes to Inner Peace',
-    description: 'Start your day with mindful breathing and gentle movement',
-    emotions: ['calm', 'joy'],
-    thumbnail: '🧘‍♀️',
-    duration: '10 min',
-    matchScore: 0.95
-  },
-  {
-    id: 2,
-    type: 'music',
-    title: 'Uplifting Jazz Playlist',
-    description: 'Feel-good classics to boost your mood instantly',
-    emotions: ['joy', 'excitement'],
-    thumbnail: '🎵',
-    duration: '45 min',
-    matchScore: 0.88
-  },
-  {
-    id: 3,
-    type: 'article',
-    title: 'The Science of Happiness: 5 Evidence-Based Tips',
-    description: 'Research-backed strategies for lasting well-being',
-    emotions: ['joy', 'calm'],
-    thumbnail: '📖',
-    duration: '5 min read',
-    matchScore: 0.82
-  },
-  {
-    id: 4,
-    type: 'video',
-    title: 'High-Energy Dance Workout',
-    description: 'Get your heart pumping with this 20-minute routine',
-    emotions: ['excitement', 'joy'],
-    thumbnail: '💃',
-    duration: '20 min',
-    matchScore: 0.79
-  },
-  {
-    id: 5,
-    type: 'article',
-    title: 'Managing Stress in the Digital Age',
-    description: 'Practical techniques for finding balance in busy times',
-    emotions: ['calm', 'fear'],
-    thumbnail: '🧠',
-    duration: '7 min read',
-    matchScore: 0.75
-  },
-  {
-    id: 6,
-    type: 'music',
-    title: 'Romantic Evening Acoustic Set',
-    description: 'Soft melodies perfect for intimate moments',
-    emotions: ['love', 'calm'],
-    thumbnail: '💕',
-    duration: '60 min',
-    matchScore: 0.72
-  }
-];
+import { Content, contentService } from '../../services/contentService';
 
 const ContentFeed: React.FC = () => {
   const { mood } = useMood();
   const { theme } = useAdaptiveUI();
+  const [content, setContent] = useState<Content[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activePlayer, setActivePlayer] = useState<{
+    type: 'music' | 'video' | 'article';
+    content: Content;
+  } | null>(null);
+
+  useEffect(() => {
+    loadContent();
+    // Save mood history when mood changes
+    if (mood.primaryEmotion !== 'calm' || mood.arousalLevel !== 0.3) {
+      contentService.saveMoodHistory(mood.currentMood, mood.primaryEmotion, mood.arousalLevel);
+    }
+  }, [mood.primaryEmotion]);
+
+  const loadContent = async () => {
+    setLoading(true);
+    try {
+      // Get content based on current mood
+      const moodContent = await contentService.getContentByMood(mood.primaryEmotion, 10);
+      // Get additional content for variety
+      const allContent = await contentService.getAllContent();
+      
+      // Combine and deduplicate
+      const combinedContent = [...moodContent];
+      allContent.forEach(item => {
+        if (!combinedContent.find(existing => existing.id === item.id)) {
+          combinedContent.push(item);
+        }
+      });
+      
+      setContent(combinedContent);
+    } catch (error) {
+      console.error('Error loading content:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePlayContent = (selectedContent: Content) => {
+    setActivePlayer({
+      type: selectedContent.type as 'music' | 'video' | 'article',
+      content: selectedContent
+    });
+  };
+
+  const closePlayer = () => {
+    setActivePlayer(null);
+  };
+
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto space-y-16 px-4">
+        <div className="text-center">
+          <TextShimmer duration={1.5} className="text-2xl">
+            Loading personalized content...
+          </TextShimmer>
+        </div>
+      </div>
+    );
+  }
 
   // Filter and sort content based on current mood
-  const recommendedContent = mockContent
-    .filter(content => content.emotions.includes(mood.primaryEmotion))
-    .sort((a, b) => b.matchScore - a.matchScore);
+  const recommendedContent = content
+    .filter(item => item.emotions.includes(mood.primaryEmotion))
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
-  const otherContent = mockContent
-    .filter(content => !content.emotions.includes(mood.primaryEmotion))
-    .sort((a, b) => b.matchScore - a.matchScore);
+  const otherContent = content
+    .filter(item => !item.emotions.includes(mood.primaryEmotion))
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
   // Separate content by type
-  const getContentByType = (contentList: typeof mockContent, type: string) => 
-    contentList.filter(content => content.type === type);
+  const getContentByType = (contentList: Content[], type: string) => 
+    contentList.filter(item => item.type === type);
 
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -118,16 +119,16 @@ const ContentFeed: React.FC = () => {
     title, 
     emoji, 
     icon, 
-    content, 
+    content: sectionContent, 
     isPrimary = false 
   }: { 
     title: string; 
     emoji: string; 
     icon: React.ReactNode; 
-    content: typeof mockContent; 
+    content: Content[]; 
     isPrimary?: boolean; 
   }) => {
-    if (content.length === 0) return null;
+    if (sectionContent.length === 0) return null;
 
     return (
       <section className="space-y-6">
@@ -137,7 +138,7 @@ const ContentFeed: React.FC = () => {
             <div className="flex items-center space-x-2">
               {icon}
               <h3 className={`text-2xl font-bold ${isPrimary ? 'text-purple-600' : 'text-gray-700'}`}>
-                {title} ({content.length})
+                {title} ({sectionContent.length})
               </h3>
             </div>
           </div>
@@ -149,11 +150,12 @@ const ContentFeed: React.FC = () => {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {content.map((item) => (
+          {sectionContent.map((item) => (
             <div key={item.id} className="flex justify-center">
               <ContentCard
                 content={item}
                 isPrimaryMatch={isPrimary}
+                onPlay={handlePlayContent}
               />
             </div>
           ))}
@@ -163,23 +165,60 @@ const ContentFeed: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-16 px-4">
-      {/* Header Section */}
-      <div className="text-center space-y-6">
-        <h2 className="text-5xl font-bold text-purple-600">
-          Personalized for You
-        </h2>
-        <div className="flex justify-center">
-          <RecommendationExplanation currentMood={mood.primaryEmotion} />
+    <>
+      <div className="max-w-7xl mx-auto space-y-16 px-4">
+        {/* Header Section */}
+        <div className="text-center space-y-6">
+          <h2 className="text-5xl font-bold text-purple-600">
+            Personalized for You
+          </h2>
+          <div className="flex justify-center">
+            <RecommendationExplanation currentMood={mood.primaryEmotion} />
+          </div>
         </div>
-      </div>
 
-      {/* Perfectly Matched Content - Organized by Type */}
-      {recommendedContent.length > 0 && (
+        {/* Perfectly Matched Content - Organized by Type */}
+        {recommendedContent.length > 0 && (
+          <div className="space-y-12">
+            <div className="text-center">
+              <h2 className="text-3xl font-bold text-purple-600 mb-2">🎯 Perfectly Matched</h2>
+              <p className="text-gray-600">Content that matches your current mood perfectly</p>
+            </div>
+
+            {/* Videos Section */}
+            <ContentSection
+              title="Videos"
+              emoji={getTypeEmoji('video')}
+              icon={getTypeIcon('video')}
+              content={getContentByType(recommendedContent, 'video')}
+              isPrimary={true}
+            />
+
+            {/* Articles Section */}
+            <ContentSection
+              title="Articles"
+              emoji={getTypeEmoji('article')}
+              icon={getTypeIcon('article')}
+              content={getContentByType(recommendedContent, 'article')}
+              isPrimary={true}
+            />
+
+            {/* Music Section */}
+            <ContentSection
+              title="Music"
+              emoji={getTypeEmoji('music')}
+              icon={getTypeIcon('music')}
+              content={getContentByType(recommendedContent, 'music')}
+              isPrimary={true}
+            />
+          </div>
+        )}
+
+        {/* You Might Also Like - Organized by Type */}
         <div className="space-y-12">
           <div className="text-center">
-            <h2 className="text-3xl font-bold text-purple-600 mb-2">🎯 Perfectly Matched</h2>
-            <p className="text-gray-600">Content that matches your current mood perfectly</p>
+            <h2 className="text-3xl font-bold text-purple-600 mb-2">🌟 You Might Also Like</h2>
+            <p className="text-gray-600">Discover more content tailored to your interests</p>
           </div>
 
           {/* Videos Section */}
@@ -187,8 +226,7 @@ const ContentFeed: React.FC = () => {
             title="Videos"
             emoji={getTypeEmoji('video')}
             icon={getTypeIcon('video')}
-            content={getContentByType(recommendedContent, 'video')}
-            isPrimary={true}
+            content={getContentByType(otherContent, 'video')}
           />
 
           {/* Articles Section */}
@@ -196,8 +234,7 @@ const ContentFeed: React.FC = () => {
             title="Articles"
             emoji={getTypeEmoji('article')}
             icon={getTypeIcon('article')}
-            content={getContentByType(recommendedContent, 'article')}
-            isPrimary={true}
+            content={getContentByType(otherContent, 'article')}
           />
 
           {/* Music Section */}
@@ -205,44 +242,35 @@ const ContentFeed: React.FC = () => {
             title="Music"
             emoji={getTypeEmoji('music')}
             icon={getTypeIcon('music')}
-            content={getContentByType(recommendedContent, 'music')}
-            isPrimary={true}
+            content={getContentByType(otherContent, 'music')}
           />
         </div>
-      )}
-
-      {/* You Might Also Like - Organized by Type */}
-      <div className="space-y-12">
-        <div className="text-center">
-          <h2 className="text-3xl font-bold text-purple-600 mb-2">🌟 You Might Also Like</h2>
-          <p className="text-gray-600">Discover more content tailored to your interests</p>
-        </div>
-
-        {/* Videos Section */}
-        <ContentSection
-          title="Videos"
-          emoji={getTypeEmoji('video')}
-          icon={getTypeIcon('video')}
-          content={getContentByType(otherContent, 'video')}
-        />
-
-        {/* Articles Section */}
-        <ContentSection
-          title="Articles"
-          emoji={getTypeEmoji('article')}
-          icon={getTypeIcon('article')}
-          content={getContentByType(otherContent, 'article')}
-        />
-
-        {/* Music Section */}
-        <ContentSection
-          title="Music"
-          emoji={getTypeEmoji('music')}
-          icon={getTypeIcon('music')}
-          content={getContentByType(otherContent, 'music')}
-        />
       </div>
-    </div>
+
+      {/* Media Players */}
+      {activePlayer && (
+        <>
+          {activePlayer.type === 'music' && (
+            <MusicPlayer
+              content={activePlayer.content}
+              onClose={closePlayer}
+            />
+          )}
+          {activePlayer.type === 'video' && (
+            <VideoPlayer
+              content={activePlayer.content}
+              onClose={closePlayer}
+            />
+          )}
+          {activePlayer.type === 'article' && (
+            <ArticleReader
+              content={activePlayer.content}
+              onClose={closePlayer}
+            />
+          )}
+        </>
+      )}
+    </>
   );
 };
 
