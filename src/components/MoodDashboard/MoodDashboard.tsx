@@ -1,17 +1,20 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useMood } from '../../contexts/MoodContext';
 import { useAdaptiveUI } from '../../contexts/AdaptiveUIContext';
 import Header from '../Header/Header';
 import MoodInput from '../MoodInput/MoodInput';
 import ContentFeed from '../ContentFeed/ContentFeed';
-import PrivacyDashboard from '../PrivacyDashboard/PrivacyDashboard';
 import { TextShimmer } from '../ui/text-shimmer';
 import MusicArtwork from '../ui/music-artwork';
+import HexagonLoader from '../ui/hexagon-loader';
 
 const MoodDashboard: React.FC = () => {
   const { mood } = useMood();
   const { theme } = useAdaptiveUI();
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [showPersonalizedContent, setShowPersonalizedContent] = useState(false);
+  const [lastMoodUpdate, setLastMoodUpdate] = useState<Date | null>(null);
 
   // Sample music data based on mood
   const getMoodMusic = () => {
@@ -45,6 +48,22 @@ const MoodDashboard: React.FC = () => {
 
   const currentMusic = getMoodMusic();
 
+  // Watch for mood changes to trigger loading and content reveal
+  useEffect(() => {
+    if (mood.lastUpdated && (!lastMoodUpdate || mood.lastUpdated > lastMoodUpdate)) {
+      if (mood.primaryEmotion !== 'calm' || mood.arousalLevel !== 0.3) {
+        setIsAnalyzing(true);
+        setLastMoodUpdate(mood.lastUpdated);
+        
+        // Simulate analysis time
+        setTimeout(() => {
+          setIsAnalyzing(false);
+          setShowPersonalizedContent(true);
+        }, 3000);
+      }
+    }
+  }, [mood.lastUpdated, lastMoodUpdate, mood.primaryEmotion, mood.arousalLevel]);
+
   return (
     <div 
       className={`min-h-screen transition-all duration-1000 ease-in-out ${theme.backgroundStyle}`}
@@ -53,6 +72,8 @@ const MoodDashboard: React.FC = () => {
         color: theme.textColor 
       }}
     >
+      {isAnalyzing && <HexagonLoader />}
+      
       <Header />
       
       <main className="container mx-auto px-4 py-8 space-y-12">
@@ -95,59 +116,19 @@ const MoodDashboard: React.FC = () => {
               isLoading={false}
             />
           </div>
-
-          {/* Current Mood Indicator */}
-          <div className="inline-block">
-            <span className="text-lg font-medium px-6 py-3 rounded-full bg-white/10 backdrop-blur-sm border border-white/20">
-              Currently feeling: {mood.primaryEmotion}
-            </span>
-          </div>
         </div>
 
-        {/* Main Content Grid with Better Spacing */}
-        <div className="grid lg:grid-cols-3 gap-12">
-          <div className="lg:col-span-1 space-y-8">
-            <div className="transform transition-all duration-500 hover:scale-105">
-              <MoodInput />
-            </div>
-            <div className="transform transition-all duration-500 hover:scale-105">
-              <PrivacyDashboard />
-            </div>
-          </div>
-          
-          <div className="lg:col-span-2">
-            <div className="transform transition-all duration-500 hover:scale-[1.02]">
-              <ContentFeed />
-            </div>
-          </div>
+        {/* Mood Input Section */}
+        <div className="max-w-2xl mx-auto">
+          <MoodInput />
         </div>
 
-        {/* Enhanced Status Footer */}
-        <div className="text-center mt-16">
-          <div className="inline-block p-8 rounded-2xl bg-white/10 backdrop-blur-lg border border-white/20 shadow-2xl">
-            <div className="space-y-4">
-              <p className="text-sm opacity-80 font-medium">
-                Mood Analysis Complete
-              </p>
-              <div className="flex flex-wrap justify-center items-center gap-6 text-sm">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 rounded-full bg-green-400 animate-pulse"></div>
-                  <span className="font-semibold capitalize">{mood.primaryEmotion}</span>
-                </div>
-                <div className="w-px h-4 bg-white/30"></div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 rounded-full bg-blue-400 animate-pulse"></div>
-                  <span>Arousal: {Math.round(mood.arousalLevel * 100)}%</span>
-                </div>
-                <div className="w-px h-4 bg-white/30"></div>
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 rounded-full bg-purple-400 animate-pulse"></div>
-                  <span>Updated: {mood.lastUpdated.toLocaleTimeString()}</span>
-                </div>
-              </div>
-            </div>
+        {/* Personalized Content - Only show after mood analysis */}
+        {showPersonalizedContent && (
+          <div className="animate-in fade-in-0 duration-1000">
+            <ContentFeed />
           </div>
-        </div>
+        )}
       </main>
     </div>
   );
