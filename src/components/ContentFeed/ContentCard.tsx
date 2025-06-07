@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
 import { useAdaptiveUI } from '../../contexts/AdaptiveUIContext';
 import { Play, BookOpen, Music, Heart, Sparkles } from 'lucide-react';
 import MusicArtwork from '../ui/music-artwork';
 import { Content } from '../../services/contentService';
+import { YouTubeService } from '../../services/youtubeService';
 
 interface ContentCardProps {
   content: Content;
@@ -57,6 +57,16 @@ const ContentCard: React.FC<ContentCardProps> = ({ content, isPrimaryMatch, onPl
     }
   };
 
+  const getThumbnailUrl = () => {
+    if (content.thumbnail_url && !thumbnailError) {
+      return content.thumbnail_url;
+    }
+    if (content.type === 'music' && YouTubeService.isYouTubeUrl(content.url)) {
+      return YouTubeService.getThumbnailUrl(content.url);
+    }
+    return null;
+  };
+
   // Music content with existing clean layout
   if (content.type === 'music') {
     return (
@@ -79,7 +89,7 @@ const ContentCard: React.FC<ContentCardProps> = ({ content, isPrimaryMatch, onPl
             <MusicArtwork
               artist="Various Artists"
               music={content.title}
-              albumArt={content.thumbnail_url && !thumbnailError ? content.thumbnail_url : '/placeholder.svg'}
+              albumArt={getThumbnailUrl() || '/placeholder.svg'}
               isSong={true}
               isLoading={false}
             />
@@ -89,6 +99,12 @@ const ContentCard: React.FC<ContentCardProps> = ({ content, isPrimaryMatch, onPl
             <div className="flex items-center justify-center space-x-2 text-sm text-purple-600">
               {getTypeIcon()}
               <span className="font-medium uppercase">{content.type}</span>
+              {YouTubeService.isYouTubeUrl(content.url) && (
+                <>
+                  <span>•</span>
+                  <span className="text-xs">YouTube</span>
+                </>
+              )}
               <span>•</span>
               <span>{content.duration}</span>
             </div>

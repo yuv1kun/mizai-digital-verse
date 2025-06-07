@@ -1,6 +1,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Content } from '../services/contentService';
+import { YouTubeService } from '../services/youtubeService';
 
 interface UseAudioPlayerProps {
   content: Content;
@@ -15,6 +16,8 @@ interface AudioPlayerState {
   volume: number;
   isLoading: boolean;
   error: string | null;
+  isExtracting: boolean;
+  extractedAudioUrl: string | null;
 }
 
 export const useAudioPlayer = ({ content, onTrackEnd, onError }: UseAudioPlayerProps) => {
@@ -26,15 +29,48 @@ export const useAudioPlayer = ({ content, onTrackEnd, onError }: UseAudioPlayerP
     volume: 1,
     isLoading: true,
     error: null,
+    isExtracting: false,
+    extractedAudioUrl: null,
   });
 
   const updateState = useCallback((updates: Partial<AudioPlayerState>) => {
     setState(prev => ({ ...prev, ...updates }));
   }, []);
 
+  // Extract audio URL if it's a YouTube URL
+  useEffect(() => {
+    const extractAudioUrl = async () => {
+      if (YouTubeService.isYouTubeUrl(content.url)) {
+        updateState({ isExtracting: true, isLoading: true });
+        try {
+          const audioInfo = await YouTubeService.getAudioInfo(content.url);
+          updateState({ 
+            extractedAudioUrl: audioInfo.audioUrl, 
+            isExtracting: false 
+          });
+        } catch (error) {
+          const errorMsg = error instanceof Error ? error.message : 'Failed to extract YouTube audio';
+          updateState({ 
+            error: errorMsg, 
+            isLoading: false, 
+            isExtracting: false 
+          });
+          onError?.(errorMsg);
+        }
+      } else {
+        updateState({ extractedAudioUrl: content.url });
+      }
+    };
+
+    extractAudioUrl();
+  }, [content.url, updateState, onError]);
+
   useEffect(() => {
     const audio = audioRef.current;
-    if (!audio) return;
+    if (!audio || !state.extractedAudioUrl) return;
+
+    // Update audio source when extracted URL is available
+    audio.src = state.extractedAudioUrl;
 
     const handleTimeUpdate = () => updateState({ currentTime: audio.currentTime });
     const handleDurationChange = () => updateState({ duration: audio.duration, isLoading: false });
@@ -62,11 +98,11 @@ export const useAudioPlayer = ({ content, onTrackEnd, onError }: UseAudioPlayerP
       audio.removeEventListener('error', handleError);
       audio.removeEventListener('ended', handleEnded);
     };
-  }, [updateState, onTrackEnd, onError]);
+  }, [state.extractedAudioUrl, updateState, onTrackEnd, onError]);
 
   const play = useCallback(async () => {
     const audio = audioRef.current;
-    if (!audio || state.error) return;
+    if (!audio || state.error || !state.extractedAudioUrl) return;
 
     try {
       await audio.play();
@@ -76,7 +112,7 @@ export const useAudioPlayer = ({ content, onTrackEnd, onError }: UseAudioPlayerP
       updateState({ error: errorMsg });
       onError?.(errorMsg);
     }
-  }, [state.error, updateState, onError]);
+  }, [state.error, state.extractedAudioUrl, updateState, onError]);
 
   const pause = useCallback(() => {
     const audio = audioRef.current;

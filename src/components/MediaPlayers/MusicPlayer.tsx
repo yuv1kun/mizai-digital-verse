@@ -1,7 +1,9 @@
 
-import React, { useState, useRef, useEffect } from 'react';
-import { Play, Pause, SkipBack, SkipForward, Volume2, Heart, AlertCircle } from 'lucide-react';
+import React from 'react';
+import { Play, Pause, SkipBack, SkipForward, Volume2, Heart, AlertCircle, Loader2 } from 'lucide-react';
 import { Content, contentService } from '../../services/contentService';
+import { useAudioPlayer } from '../../hooks/useAudioPlayer';
+import { YouTubeService } from '../../services/youtubeService';
 
 interface MusicPlayerProps {
   content: Content;
@@ -9,87 +11,38 @@ interface MusicPlayerProps {
 }
 
 const MusicPlayer: React.FC<MusicPlayerProps> = ({ content, onClose }) => {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [volume, setVolume] = useState(1);
-  const [isLiked, setIsLiked] = useState(false);
-  const [audioError, setAudioError] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const [isLiked, setIsLiked] = React.useState(false);
 
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    const updateTime = () => setCurrentTime(audio.currentTime);
-    const updateDuration = () => {
-      setDuration(audio.duration);
-      setIsLoading(false);
-    };
-    const handleError = () => {
-      setAudioError(true);
-      setIsLoading(false);
-      console.error('Audio failed to load:', content.url);
-    };
-    const handleCanPlay = () => {
-      setIsLoading(false);
-      setAudioError(false);
-    };
-
-    audio.addEventListener('timeupdate', updateTime);
-    audio.addEventListener('loadedmetadata', updateDuration);
-    audio.addEventListener('ended', handleTrackEnd);
-    audio.addEventListener('error', handleError);
-    audio.addEventListener('canplay', handleCanPlay);
-
-    return () => {
-      audio.removeEventListener('timeupdate', updateTime);
-      audio.removeEventListener('loadedmetadata', updateDuration);
-      audio.removeEventListener('ended', handleTrackEnd);
-      audio.removeEventListener('error', handleError);
-      audio.removeEventListener('canplay', handleCanPlay);
-    };
-  }, []);
-
-  const handleTrackEnd = () => {
-    setIsPlaying(false);
-    contentService.recordInteraction(content.id, 'complete', duration);
-  };
-
-  const togglePlayPause = () => {
-    const audio = audioRef.current;
-    if (!audio || audioError) return;
-
-    if (isPlaying) {
-      audio.pause();
-      contentService.recordInteraction(content.id, 'pause', currentTime);
-    } else {
-      audio.play().catch(() => {
-        setAudioError(true);
-        console.error('Failed to play audio');
-      });
-      contentService.recordInteraction(content.id, 'play', currentTime);
+  const {
+    audioRef,
+    isPlaying,
+    currentTime,
+    duration,
+    volume,
+    isLoading,
+    error,
+    isExtracting,
+    togglePlayPause,
+    seek,
+    setVolume: handleVolumeChange
+  } = useAudioPlayer({
+    content,
+    onTrackEnd: () => {
+      contentService.recordInteraction(content.id, 'complete', duration);
+    },
+    onError: (errorMsg) => {
+      console.error('Audio player error:', errorMsg);
     }
-    setIsPlaying(!isPlaying);
-  };
+  });
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const audio = audioRef.current;
-    if (!audio || audioError) return;
-
     const newTime = parseFloat(e.target.value);
-    audio.currentTime = newTime;
-    setCurrentTime(newTime);
+    seek(newTime);
   };
 
-  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
+  const handleVolumeSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newVolume = parseFloat(e.target.value);
-    audio.volume = newVolume;
-    setVolume(newVolume);
+    handleVolumeChange(newVolume);
   };
 
   const handleLike = () => {
@@ -104,83 +57,99 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ content, onClose }) => {
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  // Enhanced audio URL processing
-  const getAudioUrl = (url: string) => {
-    // Check if it's already a direct audio file
-    if (url.match(/\.(mp3|wav|ogg|m4a|aac|flac)(\?.*)?$/i)) {
-      return url;
+  const getThumbnailUrl = () => {
+    if (content.thumbnail_url) {
+      return content.thumbnail_url;
     }
-    
-    // For YouTube URLs, we'll need a different approach in production
-    // For now, return a placeholder or the original URL
-    if (url.includes('youtube.com') || url.includes('youtu.be')) {
-      console.warn('YouTube URLs require special handling for audio extraction');
-      // In production, you'd use YouTube API or a service like youtube-dl
-      return 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav'; // Placeholder
+    if (YouTubeService.isYouTubeUrl(content.url)) {
+      return YouTubeService.getThumbnailUrl(content.url);
     }
-    
-    // Assume it's a direct audio URL
-    return url;
+    return null;
+  };
+
+  const getStatusMessage = () => {
+    if (isExtracting) return 'Extracting audio from YouTube...';
+    if (isLoading) return 'Loading audio...';
+    if (error) return error;
+    return null;
   };
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-purple-200 p-4 z-50">
-      <audio
-        ref={audioRef}
-        src={getAudioUrl(content.url)}
-        preload="metadata"
-        onLoadStart={() => setIsLoading(true)}
-      />
+      <audio ref={audioRef} preload="metadata" />
       
       <div className="max-w-4xl mx-auto flex items-center space-x-4">
         {/* Album Art with Enhanced Loading */}
         <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 relative">
-          {content.thumbnail_url ? (
+          {getThumbnailUrl() ? (
             <img
-              src={content.thumbnail_url}
+              src={getThumbnailUrl()!}
               alt={content.title}
               className="w-full h-full object-cover"
               onError={(e) => {
-                // Fallback to a default music icon
                 e.currentTarget.style.display = 'none';
                 e.currentTarget.nextElementSibling?.classList.remove('hidden');
               }}
             />
           ) : null}
-          <div className={`absolute inset-0 bg-purple-100 flex items-center justify-center text-2xl ${content.thumbnail_url ? 'hidden' : ''}`}>
+          <div className={`absolute inset-0 bg-purple-100 flex items-center justify-center text-2xl ${getThumbnailUrl() ? 'hidden' : ''}`}>
             🎵
           </div>
+          
+          {/* Loading overlay for YouTube extraction */}
+          {isExtracting && (
+            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+              <Loader2 className="w-6 h-6 text-white animate-spin" />
+            </div>
+          )}
         </div>
 
         {/* Track Info */}
         <div className="flex-1 min-w-0">
           <h4 className="font-semibold text-gray-800 truncate">{content.title}</h4>
           <p className="text-sm text-gray-600 truncate">{content.description}</p>
-          {audioError && (
-            <div className="flex items-center space-x-1 text-red-500 text-xs mt-1">
-              <AlertCircle className="w-3 h-3" />
-              <span>Audio failed to load</span>
+          
+          {/* Status Messages */}
+          {getStatusMessage() && (
+            <div className={`flex items-center space-x-1 text-xs mt-1 ${
+              error ? 'text-red-500' : 'text-blue-500'
+            }`}>
+              {error ? (
+                <AlertCircle className="w-3 h-3" />
+              ) : (
+                <Loader2 className="w-3 h-3 animate-spin" />
+              )}
+              <span>{getStatusMessage()}</span>
+            </div>
+          )}
+          
+          {YouTubeService.isYouTubeUrl(content.url) && !error && (
+            <div className="text-xs text-gray-500 mt-1">
+              🎵 YouTube Audio
             </div>
           )}
         </div>
 
         {/* Controls */}
         <div className="flex items-center space-x-3">
-          <button className="p-2 hover:bg-gray-100 rounded-full transition-colors" disabled={audioError}>
+          <button 
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors" 
+            disabled={error || isLoading || isExtracting}
+          >
             <SkipBack className="w-5 h-5" />
           </button>
           
           <button
             onClick={togglePlayPause}
-            disabled={audioError || isLoading}
+            disabled={error || isLoading || isExtracting}
             className={`p-3 rounded-full transition-colors ${
-              audioError || isLoading 
+              error || isLoading || isExtracting
                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
                 : 'bg-purple-500 hover:bg-purple-600 text-white'
             }`}
           >
-            {isLoading ? (
-              <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            {isLoading || isExtracting ? (
+              <Loader2 className="w-6 h-6 animate-spin" />
             ) : isPlaying ? (
               <Pause className="w-6 h-6" />
             ) : (
@@ -188,7 +157,10 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ content, onClose }) => {
             )}
           </button>
           
-          <button className="p-2 hover:bg-gray-100 rounded-full transition-colors" disabled={audioError}>
+          <button 
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors" 
+            disabled={error || isLoading || isExtracting}
+          >
             <SkipForward className="w-5 h-5" />
           </button>
         </div>
@@ -203,7 +175,7 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ content, onClose }) => {
               max={duration || 0}
               value={currentTime}
               onChange={handleSeek}
-              disabled={audioError || isLoading}
+              disabled={error || isLoading || isExtracting}
               className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer disabled:cursor-not-allowed"
             />
             <span>{formatTime(duration)}</span>
@@ -220,8 +192,8 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ content, onClose }) => {
               max="1"
               step="0.1"
               value={volume}
-              onChange={handleVolumeChange}
-              disabled={audioError}
+              onChange={handleVolumeSliderChange}
+              disabled={error}
               className="w-20 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer disabled:cursor-not-allowed"
             />
           </div>
