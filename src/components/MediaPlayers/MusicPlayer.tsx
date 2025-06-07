@@ -21,7 +21,6 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ content, onClose }) => {
     volume,
     isLoading,
     error,
-    isExtracting,
     togglePlayPause,
     seek,
     setVolume: handleVolumeChange
@@ -68,7 +67,6 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ content, onClose }) => {
   };
 
   const getStatusMessage = () => {
-    if (isExtracting) return 'Extracting audio from YouTube...';
     if (isLoading) return 'Loading audio...';
     if (error) return error;
     return null;
@@ -81,7 +79,7 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ content, onClose }) => {
   };
 
   // Helper function to determine if controls should be disabled
-  const isControlsDisabled = Boolean(error || isLoading || isExtracting);
+  const isControlsDisabled = Boolean(error || isLoading);
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-purple-200 p-4 z-50">
@@ -105,8 +103,8 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ content, onClose }) => {
             🎵
           </div>
           
-          {/* Loading overlay for YouTube extraction */}
-          {isExtracting && (
+          {/* Loading overlay */}
+          {isLoading && (
             <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
               <Loader2 className="w-6 h-6 text-white animate-spin" />
             </div>
@@ -167,7 +165,7 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ content, onClose }) => {
                 : 'bg-purple-500 hover:bg-purple-600 text-white'
             }`}
           >
-            {isLoading || isExtracting ? (
+            {isLoading ? (
               <Loader2 className="w-6 h-6 animate-spin" />
             ) : isPlaying ? (
               <Pause className="w-6 h-6" />
