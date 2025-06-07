@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Play, Pause, SkipBack, SkipForward, Volume2, Heart, AlertCircle, Loader2 } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Volume2, Heart, AlertCircle, Loader2, ExternalLink } from 'lucide-react';
 import { Content, contentService } from '../../services/contentService';
 import { useAudioPlayer } from '../../hooks/useAudioPlayer';
 import { YouTubeService } from '../../services/youtubeService';
@@ -74,6 +74,12 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ content, onClose }) => {
     return null;
   };
 
+  const openInYouTube = () => {
+    if (YouTubeService.isYouTubeUrl(content.url)) {
+      window.open(content.url, '_blank');
+    }
+  };
+
   // Helper function to determine if controls should be disabled
   const isControlsDisabled = Boolean(error || isLoading || isExtracting);
 
@@ -126,9 +132,19 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ content, onClose }) => {
             </div>
           )}
           
-          {YouTubeService.isYouTubeUrl(content.url) && !error && (
-            <div className="text-xs text-gray-500 mt-1">
-              🎵 YouTube Audio
+          {/* YouTube Content Notice */}
+          {YouTubeService.isYouTubeUrl(content.url) && (
+            <div className="flex items-center space-x-2 text-xs text-gray-500 mt-1">
+              <span>🎵 YouTube Content</span>
+              {error && (
+                <button
+                  onClick={openInYouTube}
+                  className="flex items-center space-x-1 text-blue-500 hover:text-blue-700"
+                >
+                  <ExternalLink className="w-3 h-3" />
+                  <span>Open in YouTube</span>
+                </button>
+              )}
             </div>
           )}
         </div>

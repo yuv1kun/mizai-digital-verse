@@ -31,49 +31,21 @@ export class YouTubeService {
       throw new Error('Invalid YouTube URL');
     }
 
-    try {
-      // Using a free YouTube audio extraction service
-      // Note: In production, you might want to use a more reliable service
-      const response = await fetch(`https://api.cobalt.tools/api/json`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-          url: url,
-          vCodec: 'h264',
-          vQuality: '720',
-          aFormat: 'mp3',
-          isAudioOnly: true
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to extract audio from YouTube');
-      }
-
-      const data = await response.json();
-      
-      if (data.status === 'success' && data.url) {
-        return {
-          audioUrl: data.url,
-          title: data.title || 'YouTube Audio',
-          duration: 0, // Will be set when audio loads
-          thumbnail: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`
-        };
-      } else {
-        throw new Error(data.text || 'Failed to extract audio');
-      }
-    } catch (error) {
-      console.error('YouTube extraction error:', error);
-      // Fallback: Return a direct YouTube URL (won't work for audio playback)
-      throw new Error('Unable to extract audio from YouTube. Please use a direct audio file URL.');
-    }
+    // For now, we'll throw a more descriptive error since YouTube audio extraction
+    // requires server-side processing or paid APIs
+    throw new Error(
+      'YouTube audio extraction is currently unavailable. This feature requires a backend service to process YouTube URLs safely. Please use direct audio file URLs (.mp3, .wav, etc.) instead.'
+    );
   }
 
   static getThumbnailUrl(url: string): string {
     const videoId = this.extractVideoId(url);
     return videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : '';
+  }
+
+  static getVideoTitle(url: string): string {
+    // Extract title from URL if possible, otherwise return generic title
+    const videoId = this.extractVideoId(url);
+    return videoId ? `YouTube Video (${videoId})` : 'YouTube Video';
   }
 }
