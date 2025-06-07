@@ -1,10 +1,11 @@
-
 import React, { useState, useEffect } from 'react';
-import { Music, Trash2, Play, Download, Search } from 'lucide-react';
+import { Music, Trash2, Play, Download, Search, Database } from 'lucide-react';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { Content } from '../../services/contentService';
 import { musicUploadService } from '../../services/musicUploadService';
+import { seedMusicData } from '../../utils/seedMusicData';
+import { toast } from 'sonner';
 import { supabase } from '../../integrations/supabase/client';
 
 interface MusicLibraryProps {
@@ -17,6 +18,7 @@ const MusicLibrary: React.FC<MusicLibraryProps> = ({ onPlayMusic, refreshTrigger
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [seeding, setSeeding] = useState(false);
 
   const loadMusicFiles = async () => {
     setLoading(true);
@@ -28,6 +30,18 @@ const MusicLibrary: React.FC<MusicLibraryProps> = ({ onPlayMusic, refreshTrigger
   useEffect(() => {
     loadMusicFiles();
   }, [refreshTrigger]);
+
+  const handleSeedData = async () => {
+    setSeeding(true);
+    const success = await seedMusicData();
+    if (success) {
+      toast.success('Music library updated successfully!');
+      await loadMusicFiles();
+    } else {
+      toast.error('Failed to update music library');
+    }
+    setSeeding(false);
+  };
 
   const handleDelete = async (content: Content) => {
     if (!confirm(`Are you sure you want to delete "${content.title}"?`)) return;
@@ -81,14 +95,26 @@ const MusicLibrary: React.FC<MusicLibraryProps> = ({ onPlayMusic, refreshTrigger
           My Music Library ({musicFiles.length})
         </h2>
         
-        <div className="relative">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-          <Input
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search music..."
-            className="pl-10 w-64"
-          />
+        <div className="flex items-center space-x-4">
+          <Button
+            onClick={handleSeedData}
+            disabled={seeding}
+            className="flex items-center"
+            variant="outline"
+          >
+            <Database className="w-4 h-4 mr-2" />
+            {seeding ? 'Updating...' : 'Load Sample Music'}
+          </Button>
+          
+          <div className="relative">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <Input
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search music..."
+              className="pl-10 w-64"
+            />
+          </div>
         </div>
       </div>
 
