@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useAdaptiveUI } from '../../contexts/AdaptiveUIContext';
 import { Play, BookOpen, Music, Heart } from 'lucide-react';
+import MusicArtwork from '../ui/music-artwork';
 
 interface Content {
   id: number;
@@ -48,6 +49,19 @@ const ContentCard: React.FC<ContentCardProps> = ({ content, isPrimaryMatch }) =>
     console.log(`${isLiked ? 'Unliked' : 'Liked'} content: ${content.title}`);
   };
 
+  // Sample album art URLs for music content
+  const getMusicAlbumArt = () => {
+    const albumArts = [
+      "https://i.scdn.co/image/ab67616d0000b273b33d46dfa2635a47eebf63b2",
+      "https://i.scdn.co/image/ab67616d0000b273c8b444df094279e70d0ed856",
+      "https://upload.wikimedia.org/wikipedia/en/2/23/Pharrell_Williams_-_Happy.jpg",
+      "https://i.scdn.co/image/ab67616d0000b273ee7c4fd0b050b0f3e8a8c7e8",
+      "https://i.scdn.co/image/ab67616d0000b2734ce8b4e42588bf18182a1ad0",
+      "https://i.scdn.co/image/ab67616d0000b273f2248cf6dad1d6c062587249"
+    ];
+    return albumArts[content.id % albumArts.length];
+  };
+
   return (
     <div
       className={`group relative p-4 rounded-xl backdrop-blur-md border transition-all duration-300 cursor-pointer ${
@@ -71,7 +85,20 @@ const ContentCard: React.FC<ContentCardProps> = ({ content, isPrimaryMatch }) =>
       )}
 
       <div className="flex items-start space-x-4">
-        <div className="text-4xl">{content.thumbnail}</div>
+        {/* Music Artwork for music content, emoji for others */}
+        {content.type === 'music' ? (
+          <div className="flex-shrink-0">
+            <MusicArtwork
+              artist="Various Artists"
+              music={content.title}
+              albumArt={getMusicAlbumArt()}
+              isSong={true}
+              isLoading={false}
+            />
+          </div>
+        ) : (
+          <div className="text-4xl">{content.thumbnail}</div>
+        )}
         
         <div className="flex-1 min-w-0">
           <div className="flex items-center space-x-2 mb-2">

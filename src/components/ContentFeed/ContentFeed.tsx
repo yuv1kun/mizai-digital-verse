@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useMood } from '../../contexts/MoodContext';
 import { useAdaptiveUI } from '../../contexts/AdaptiveUIContext';
@@ -86,12 +85,9 @@ const ContentFeed: React.FC = () => {
   return (
     <div className="space-y-8">
       <div className="text-center mb-12">
-        <TextShimmer 
-          duration={1.5}
-          className="text-4xl font-bold mb-4"
-        >
+        <h2 className="text-4xl font-bold mb-4">
           Personalized for You
-        </TextShimmer>
+        </h2>
         <RecommendationExplanation currentMood={mood.primaryEmotion} />
       </div>
 
@@ -99,12 +95,9 @@ const ContentFeed: React.FC = () => {
         <section className="space-y-6">
           <h3 className="text-2xl font-semibold flex items-center">
             <span className="mr-3 text-2xl">🎯</span>
-            <TextShimmer 
-              duration={2}
-              className="font-bold"
-            >
-              Perfectly Matched ({recommendedContent.length.toString()})
-            </TextShimmer>
+            <span className="font-bold">
+              Perfectly Matched ({recommendedContent.length})
+            </span>
           </h3>
           
           <div className={`grid gap-6 ${
@@ -131,12 +124,9 @@ const ContentFeed: React.FC = () => {
       <section className="space-y-6">
         <h3 className="text-2xl font-semibold flex items-center">
           <span className="mr-3 text-2xl">🌟</span>
-          <TextShimmer 
-            duration={2.2}
-            className="font-bold"
-          >
+          <span className="font-bold">
             You Might Also Like
-          </TextShimmer>
+          </span>
         </h3>
         
         <div className={`grid gap-6 ${

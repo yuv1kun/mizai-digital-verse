@@ -69,13 +69,20 @@ const MoodDashboard: React.FC = () => {
             </h1>
             
             <div className="max-w-3xl mx-auto">
-              <TextShimmer 
-                duration={2}
-                className="text-2xl opacity-90 font-light"
-              >
+              <p className="text-2xl opacity-90 font-light">
                 Your AI-powered companion that adapts to your emotions in real-time
-              </TextShimmer>
+              </p>
             </div>
+          </div>
+
+          {/* User Acknowledgment with Text Shimmer */}
+          <div className="mb-8">
+            <TextShimmer 
+              duration={2}
+              className="text-xl font-medium text-blue-600 dark:text-blue-400"
+            >
+              Hi, how are you feeling today?
+            </TextShimmer>
           </div>
 
           {/* Music Artwork Display */}
@@ -91,12 +98,9 @@ const MoodDashboard: React.FC = () => {
 
           {/* Current Mood Indicator */}
           <div className="inline-block">
-            <TextShimmer 
-              duration={1.8}
-              className="text-lg font-medium px-6 py-3 rounded-full bg-white/10 backdrop-blur-sm border border-white/20"
-            >
+            <span className="text-lg font-medium px-6 py-3 rounded-full bg-white/10 backdrop-blur-sm border border-white/20">
               Currently feeling: {mood.primaryEmotion}
-            </TextShimmer>
+            </span>
           </div>
         </div>
 
@@ -122,12 +126,9 @@ const MoodDashboard: React.FC = () => {
         <div className="text-center mt-16">
           <div className="inline-block p-8 rounded-2xl bg-white/10 backdrop-blur-lg border border-white/20 shadow-2xl">
             <div className="space-y-4">
-              <TextShimmer 
-                duration={2.5}
-                className="text-sm opacity-80 font-medium"
-              >
+              <p className="text-sm opacity-80 font-medium">
                 Mood Analysis Complete
-              </TextShimmer>
+              </p>
               <div className="flex flex-wrap justify-center items-center gap-6 text-sm">
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 rounded-full bg-green-400 animate-pulse"></div>
