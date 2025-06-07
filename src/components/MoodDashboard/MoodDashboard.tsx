@@ -18,7 +18,7 @@ const MoodDashboard: React.FC = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showPersonalizedContent, setShowPersonalizedContent] = useState(false);
   const [lastMoodUpdate, setLastMoodUpdate] = useState<Date | null>(null);
-  const [currentMusic, setCurrentMusic] = useState<Content | null>(null);
+  const [currentPlayingMusic, setCurrentPlayingMusic] = useState<Content | null>(null);
 
   // Sample music data based on mood
   const getMoodMusic = () => {
@@ -50,7 +50,7 @@ const MoodDashboard: React.FC = () => {
     }
   };
 
-  const currentMusic = getMoodMusic();
+  const moodBasedMusic = getMoodMusic();
 
   // Watch for mood changes to trigger loading and content reveal
   useEffect(() => {
@@ -69,11 +69,11 @@ const MoodDashboard: React.FC = () => {
   }, [mood.lastUpdated, lastMoodUpdate, mood.primaryEmotion, mood.arousalLevel]);
 
   const handlePlayMusic = (content: Content) => {
-    setCurrentMusic(content);
+    setCurrentPlayingMusic(content);
   };
 
   const handleClosePlayer = () => {
-    setCurrentMusic(null);
+    setCurrentPlayingMusic(null);
   };
 
   return (
@@ -121,9 +121,9 @@ const MoodDashboard: React.FC = () => {
           {/* Music Artwork Display */}
           <div className="flex justify-center py-8">
             <MusicArtwork
-              artist={currentMusic.artist}
-              music={currentMusic.music}
-              albumArt={currentMusic.albumArt}
+              artist={moodBasedMusic.artist}
+              music={moodBasedMusic.music}
+              albumArt={moodBasedMusic.albumArt}
               isSong={true}
               isLoading={false}
             />
@@ -154,9 +154,9 @@ const MoodDashboard: React.FC = () => {
       </main>
 
       {/* Music Player */}
-      {currentMusic && (
+      {currentPlayingMusic && (
         <MusicPlayer 
-          content={currentMusic} 
+          content={currentPlayingMusic} 
           onClose={handleClosePlayer}
         />
       )}
