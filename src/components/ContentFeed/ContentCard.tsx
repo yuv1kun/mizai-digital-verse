@@ -14,6 +14,7 @@ interface ContentCardProps {
 const ContentCard: React.FC<ContentCardProps> = ({ content, isPrimaryMatch, onPlay }) => {
   const { theme } = useAdaptiveUI();
   const [isLiked, setIsLiked] = useState(false);
+  const [thumbnailError, setThumbnailError] = useState(false);
 
   const getTypeIcon = () => {
     switch (content.type) {
@@ -39,6 +40,23 @@ const ContentCard: React.FC<ContentCardProps> = ({ content, isPrimaryMatch, onPl
     console.log(`${isLiked ? 'Unliked' : 'Liked'} content: ${content.title}`);
   };
 
+  const handleThumbnailError = () => {
+    setThumbnailError(true);
+  };
+
+  const getThumbnailFallback = () => {
+    switch (content.type) {
+      case 'video':
+        return '🎬';
+      case 'article':
+        return '📖';
+      case 'music':
+        return '🎵';
+      default:
+        return '🎬';
+    }
+  };
+
   // Music content with existing clean layout
   if (content.type === 'music') {
     return (
@@ -61,7 +79,7 @@ const ContentCard: React.FC<ContentCardProps> = ({ content, isPrimaryMatch, onPl
             <MusicArtwork
               artist="Various Artists"
               music={content.title}
-              albumArt={content.thumbnail_url || '/placeholder.svg'}
+              albumArt={content.thumbnail_url && !thumbnailError ? content.thumbnail_url : '/placeholder.svg'}
               isSong={true}
               isLoading={false}
             />
@@ -115,7 +133,7 @@ const ContentCard: React.FC<ContentCardProps> = ({ content, isPrimaryMatch, onPl
     );
   }
 
-  // Video and article content with clean card design
+  // Video and article content with enhanced thumbnail handling
   return (
     <div
       className={`group relative p-6 rounded-2xl backdrop-blur-md border-2 transition-all duration-300 cursor-pointer w-full max-w-sm ${
@@ -132,19 +150,23 @@ const ContentCard: React.FC<ContentCardProps> = ({ content, isPrimaryMatch, onPl
       )}
 
       <div className="space-y-4">
-        {/* Content thumbnail */}
+        {/* Enhanced Content thumbnail with loading states */}
         <div className="flex justify-center">
-          {content.thumbnail_url ? (
-            <img
-              src={content.thumbnail_url}
-              alt={content.title}
-              className="w-16 h-16 rounded-full object-cover"
-            />
+          {content.thumbnail_url && !thumbnailError ? (
+            <div className="relative w-16 h-16">
+              <img
+                src={content.thumbnail_url}
+                alt={content.title}
+                className="w-16 h-16 rounded-full object-cover"
+                onError={handleThumbnailError}
+              />
+              {/* Loading overlay could be added here */}
+            </div>
           ) : (
             <div className={`w-16 h-16 rounded-full flex items-center justify-center text-3xl ${
               isPrimaryMatch ? 'bg-purple-100' : 'bg-blue-100'
             }`}>
-              {content.type === 'video' ? '🎬' : '📖'}
+              {getThumbnailFallback()}
             </div>
           )}
         </div>

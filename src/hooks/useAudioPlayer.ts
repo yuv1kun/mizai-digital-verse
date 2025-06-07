@@ -1,0 +1,122 @@
+
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { Content } from '../services/contentService';
+
+interface UseAudioPlayerProps {
+  content: Content;
+  onTrackEnd?: () => void;
+  onError?: (error: string) => void;
+}
+
+interface AudioPlayerState {
+  isPlaying: boolean;
+  currentTime: number;
+  duration: number;
+  volume: number;
+  isLoading: boolean;
+  error: string | null;
+}
+
+export const useAudioPlayer = ({ content, onTrackEnd, onError }: UseAudioPlayerProps) => {
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [state, setState] = useState<AudioPlayerState>({
+    isPlaying: false,
+    currentTime: 0,
+    duration: 0,
+    volume: 1,
+    isLoading: true,
+    error: null,
+  });
+
+  const updateState = useCallback((updates: Partial<AudioPlayerState>) => {
+    setState(prev => ({ ...prev, ...updates }));
+  }, []);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const handleTimeUpdate = () => updateState({ currentTime: audio.currentTime });
+    const handleDurationChange = () => updateState({ duration: audio.duration, isLoading: false });
+    const handleCanPlay = () => updateState({ isLoading: false, error: null });
+    const handleError = () => {
+      const errorMsg = 'Failed to load audio file';
+      updateState({ error: errorMsg, isLoading: false });
+      onError?.(errorMsg);
+    };
+    const handleEnded = () => {
+      updateState({ isPlaying: false });
+      onTrackEnd?.();
+    };
+
+    audio.addEventListener('timeupdate', handleTimeUpdate);
+    audio.addEventListener('loadedmetadata', handleDurationChange);
+    audio.addEventListener('canplay', handleCanPlay);
+    audio.addEventListener('error', handleError);
+    audio.addEventListener('ended', handleEnded);
+
+    return () => {
+      audio.removeEventListener('timeupdate', handleTimeUpdate);
+      audio.removeEventListener('loadedmetadata', handleDurationChange);
+      audio.removeEventListener('canplay', handleCanPlay);
+      audio.removeEventListener('error', handleError);
+      audio.removeEventListener('ended', handleEnded);
+    };
+  }, [updateState, onTrackEnd, onError]);
+
+  const play = useCallback(async () => {
+    const audio = audioRef.current;
+    if (!audio || state.error) return;
+
+    try {
+      await audio.play();
+      updateState({ isPlaying: true });
+    } catch (error) {
+      const errorMsg = 'Failed to play audio';
+      updateState({ error: errorMsg });
+      onError?.(errorMsg);
+    }
+  }, [state.error, updateState, onError]);
+
+  const pause = useCallback(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    audio.pause();
+    updateState({ isPlaying: false });
+  }, [updateState]);
+
+  const seek = useCallback((time: number) => {
+    const audio = audioRef.current;
+    if (!audio || state.error) return;
+
+    audio.currentTime = time;
+    updateState({ currentTime: time });
+  }, [state.error, updateState]);
+
+  const setVolume = useCallback((volume: number) => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    audio.volume = volume;
+    updateState({ volume });
+  }, [updateState]);
+
+  const togglePlayPause = useCallback(() => {
+    if (state.isPlaying) {
+      pause();
+    } else {
+      play();
+    }
+  }, [state.isPlaying, play, pause]);
+
+  return {
+    audioRef,
+    ...state,
+    play,
+    pause,
+    seek,
+    setVolume,
+    togglePlayPause,
+  };
+};
