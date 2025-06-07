@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useMood } from '../../contexts/MoodContext';
 import { useAdaptiveUI } from '../../contexts/AdaptiveUIContext';
@@ -102,7 +103,7 @@ const ContentFeed: React.FC = () => {
               duration={2}
               className="font-bold"
             >
-              Perfectly Matched ({recommendedContent.length})
+              Perfectly Matched ({recommendedContent.length.toString()})
             </TextShimmer>
           </h3>
           
