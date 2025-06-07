@@ -33,6 +33,7 @@ export const useAudioPlayer = ({ content, onTrackEnd, onError }: UseAudioPlayerP
     extractedAudioUrl: null,
   });
 
+  // Stable updateState function that won't cause re-renders
   const updateState = useCallback((updates: Partial<AudioPlayerState>) => {
     setState(prev => ({ ...prev, ...updates }));
   }, []);
@@ -44,23 +45,25 @@ export const useAudioPlayer = ({ content, onTrackEnd, onError }: UseAudioPlayerP
     if (YouTubeService.isYouTubeUrl(content.url)) {
       // For YouTube URLs, show a clear error message
       const errorMsg = 'YouTube playback is not currently supported. Please use direct audio file URLs (.mp3, .wav, etc.) for music playback.';
-      updateState({ 
+      setState(prev => ({ 
+        ...prev,
         error: errorMsg, 
         isLoading: false, 
         isExtracting: false,
         extractedAudioUrl: null
-      });
+      }));
       onError?.(errorMsg);
     } else {
       // For direct audio URLs (including Supabase storage), proceed normally
       console.log('Setting extracted audio URL:', content.url);
-      updateState({ 
+      setState(prev => ({ 
+        ...prev,
         extractedAudioUrl: content.url,
         error: null,
         isLoading: true 
-      });
+      }));
     }
-  }, [content.url, onError]);
+  }, [content.url, onError]); // Removed updateState from dependencies
 
   useEffect(() => {
     const audio = audioRef.current;
