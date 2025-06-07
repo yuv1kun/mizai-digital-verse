@@ -38,7 +38,7 @@ export const contentService = {
       return [];
     }
 
-    return data || [];
+    return (data || []) as Content[];
   },
 
   // Fetch all content with optional type filter
@@ -56,7 +56,7 @@ export const contentService = {
       return [];
     }
 
-    return data || [];
+    return (data || []) as Content[];
   },
 
   // Record user interaction
