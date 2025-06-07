@@ -51,7 +51,7 @@ export const useAudioPlayer = ({ content, onTrackEnd, onError }: UseAudioPlayerP
         });
         onError?.(errorMsg);
       } else {
-        // For direct audio URLs, proceed normally
+        // For direct audio URLs (including Supabase storage), proceed normally
         updateState({ 
           extractedAudioUrl: content.url,
           error: null,
@@ -69,6 +69,9 @@ export const useAudioPlayer = ({ content, onTrackEnd, onError }: UseAudioPlayerP
 
     // Update audio source when extracted URL is available
     audio.src = state.extractedAudioUrl;
+    
+    // Add CORS settings for Supabase storage
+    audio.crossOrigin = 'anonymous';
 
     const handleTimeUpdate = () => updateState({ currentTime: audio.currentTime });
     const handleDurationChange = () => updateState({ duration: audio.duration, isLoading: false });
