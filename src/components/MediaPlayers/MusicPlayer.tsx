@@ -74,6 +74,9 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ content, onClose }) => {
     return null;
   };
 
+  // Helper function to determine if controls should be disabled
+  const isControlsDisabled = Boolean(error || isLoading || isExtracting);
+
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-purple-200 p-4 z-50">
       <audio ref={audioRef} preload="metadata" />
@@ -134,16 +137,16 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ content, onClose }) => {
         <div className="flex items-center space-x-3">
           <button 
             className="p-2 hover:bg-gray-100 rounded-full transition-colors" 
-            disabled={error || isLoading || isExtracting}
+            disabled={isControlsDisabled}
           >
             <SkipBack className="w-5 h-5" />
           </button>
           
           <button
             onClick={togglePlayPause}
-            disabled={error || isLoading || isExtracting}
+            disabled={isControlsDisabled}
             className={`p-3 rounded-full transition-colors ${
-              error || isLoading || isExtracting
+              isControlsDisabled
                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
                 : 'bg-purple-500 hover:bg-purple-600 text-white'
             }`}
@@ -159,7 +162,7 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ content, onClose }) => {
           
           <button 
             className="p-2 hover:bg-gray-100 rounded-full transition-colors" 
-            disabled={error || isLoading || isExtracting}
+            disabled={isControlsDisabled}
           >
             <SkipForward className="w-5 h-5" />
           </button>
@@ -175,7 +178,7 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ content, onClose }) => {
               max={duration || 0}
               value={currentTime}
               onChange={handleSeek}
-              disabled={error || isLoading || isExtracting}
+              disabled={isControlsDisabled}
               className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer disabled:cursor-not-allowed"
             />
             <span>{formatTime(duration)}</span>
@@ -193,7 +196,7 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ content, onClose }) => {
               step="0.1"
               value={volume}
               onChange={handleVolumeSliderChange}
-              disabled={error}
+              disabled={Boolean(error)}
               className="w-20 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer disabled:cursor-not-allowed"
             />
           </div>
