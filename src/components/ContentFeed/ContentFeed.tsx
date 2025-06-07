@@ -83,34 +83,30 @@ const ContentFeed: React.FC = () => {
     .sort((a, b) => b.matchScore - a.matchScore);
 
   return (
-    <div className="space-y-8">
-      <div className="text-center mb-12">
-        <h2 className="text-4xl font-bold mb-4">
+    <div className="max-w-7xl mx-auto space-y-12 px-4">
+      {/* Header Section */}
+      <div className="text-center space-y-6">
+        <h2 className="text-5xl font-bold text-purple-600">
           Personalized for You
         </h2>
-        <RecommendationExplanation currentMood={mood.primaryEmotion} />
+        <div className="flex justify-center">
+          <RecommendationExplanation currentMood={mood.primaryEmotion} />
+        </div>
       </div>
 
+      {/* Perfectly Matched Section */}
       {recommendedContent.length > 0 && (
-        <section className="space-y-6">
-          <h3 className="text-2xl font-semibold flex items-center">
-            <span className="mr-3 text-2xl">🎯</span>
-            <span className="font-bold">
+        <section className="space-y-8">
+          <div className="flex items-center space-x-3">
+            <span className="text-3xl">🎯</span>
+            <h3 className="text-3xl font-bold text-purple-600">
               Perfectly Matched ({recommendedContent.length})
-            </span>
-          </h3>
+            </h3>
+          </div>
           
-          <div className={`grid gap-6 ${
-            theme.layout === 'carousel' 
-              ? 'grid-cols-1 md:grid-cols-2' 
-              : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
-          }`}>
-            {recommendedContent.map((content, index) => (
-              <div 
-                key={content.id}
-                className="transform transition-all duration-500 hover:scale-105"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {recommendedContent.map((content) => (
+              <div key={content.id} className="flex justify-center">
                 <ContentCard
                   content={content}
                   isPrimaryMatch={true}
@@ -121,25 +117,18 @@ const ContentFeed: React.FC = () => {
         </section>
       )}
 
-      <section className="space-y-6">
-        <h3 className="text-2xl font-semibold flex items-center">
-          <span className="mr-3 text-2xl">🌟</span>
-          <span className="font-bold">
+      {/* You Might Also Like Section */}
+      <section className="space-y-8">
+        <div className="flex items-center space-x-3">
+          <span className="text-3xl">🌟</span>
+          <h3 className="text-3xl font-bold text-purple-600">
             You Might Also Like
-          </span>
-        </h3>
+          </h3>
+        </div>
         
-        <div className={`grid gap-6 ${
-          theme.layout === 'carousel' 
-            ? 'grid-cols-1 md:grid-cols-2' 
-            : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
-        }`}>
-          {otherContent.slice(0, 6).map((content, index) => (
-            <div 
-              key={content.id}
-              className="transform transition-all duration-500 hover:scale-105"
-              style={{ animationDelay: `${(index + recommendedContent.length) * 0.1}s` }}
-            >
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {otherContent.slice(0, 6).map((content) => (
+            <div key={content.id} className="flex justify-center">
               <ContentCard
                 content={content}
                 isPrimaryMatch={false}

@@ -28,19 +28,18 @@ const ContentCard: React.FC<ContentCardProps> = ({ content, isPrimaryMatch }) =>
   const getTypeIcon = () => {
     switch (content.type) {
       case 'video':
-        return <Play className="w-4 h-4" />;
+        return <Play className="w-5 h-5" />;
       case 'article':
-        return <BookOpen className="w-4 h-4" />;
+        return <BookOpen className="w-5 h-5" />;
       case 'music':
-        return <Music className="w-4 h-4" />;
+        return <Music className="w-5 h-5" />;
       default:
-        return <Play className="w-4 h-4" />;
+        return <Play className="w-5 h-5" />;
     }
   };
 
   const handleContentClick = () => {
     console.log(`Opening ${content.type}: ${content.title}`);
-    // In a real app, this would navigate to the content
   };
 
   const handleLike = (e: React.MouseEvent) => {
@@ -49,7 +48,6 @@ const ContentCard: React.FC<ContentCardProps> = ({ content, isPrimaryMatch }) =>
     console.log(`${isLiked ? 'Unliked' : 'Liked'} content: ${content.title}`);
   };
 
-  // Sample album art URLs for music content
   const getMusicAlbumArt = () => {
     const albumArts = [
       "https://i.scdn.co/image/ab67616d0000b273b33d46dfa2635a47eebf63b2",
@@ -62,28 +60,25 @@ const ContentCard: React.FC<ContentCardProps> = ({ content, isPrimaryMatch }) =>
     return albumArts[content.id % albumArts.length];
   };
 
-  // If it's music content, use the existing music artwork design
+  // Music content with cleaner layout
   if (content.type === 'music') {
     return (
       <div
-        className={`group relative p-4 rounded-xl backdrop-blur-md border transition-all duration-300 cursor-pointer ${
+        className={`group relative p-6 rounded-2xl backdrop-blur-md border-2 transition-all duration-300 cursor-pointer w-full max-w-sm ${
           isPrimaryMatch
-            ? 'bg-white/30 border-white/40 hover:bg-white/40 hover:shadow-lg'
-            : 'bg-white/15 border-white/20 hover:bg-white/25 hover:shadow-md'
+            ? 'bg-white/40 border-purple-300 hover:bg-white/50 hover:shadow-xl shadow-purple-200'
+            : 'bg-white/20 border-white/30 hover:bg-white/30 hover:shadow-lg'
         }`}
         onClick={handleContentClick}
       >
         {isPrimaryMatch && (
-          <div 
-            className="absolute -top-2 -right-2 px-2 py-1 rounded-full text-xs font-medium bg-white/90 text-gray-800"
-            style={{ backgroundColor: `${theme.primary}20`, color: theme.primary }}
-          >
+          <div className="absolute -top-3 -right-3 px-3 py-1 rounded-full text-sm font-bold bg-purple-500 text-white shadow-lg">
             {Math.round(content.matchScore * 100)}% match
           </div>
         )}
 
-        <div className="flex items-start space-x-4">
-          <div className="flex-shrink-0">
+        <div className="space-y-4">
+          <div className="flex justify-center">
             <MusicArtwork
               artist="Various Artists"
               music={content.title}
@@ -93,30 +88,28 @@ const ContentCard: React.FC<ContentCardProps> = ({ content, isPrimaryMatch }) =>
             />
           </div>
           
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center space-x-2 mb-2">
+          <div className="text-center space-y-3">
+            <div className="flex items-center justify-center space-x-2 text-sm text-purple-600">
               {getTypeIcon()}
-              <span className="text-xs opacity-70 uppercase font-medium">
-                {content.type}
-              </span>
-              <span className="text-xs opacity-70">•</span>
-              <span className="text-xs opacity-70">{content.duration}</span>
+              <span className="font-medium uppercase">{content.type}</span>
+              <span>•</span>
+              <span>{content.duration}</span>
             </div>
             
-            <h4 className="font-semibold text-sm mb-2 line-clamp-2 group-hover:text-current transition-colors">
+            <h4 className="font-bold text-lg text-gray-800 line-clamp-2">
               {content.title}
             </h4>
             
-            <p className="text-xs opacity-80 line-clamp-2 mb-3">
+            <p className="text-sm text-gray-600 line-clamp-2">
               {content.description}
             </p>
 
-            <div className="flex items-center justify-between">
-              <div className="flex space-x-1">
+            <div className="flex items-center justify-between pt-2">
+              <div className="flex space-x-2">
                 {content.emotions.slice(0, 2).map((emotion) => (
                   <span
                     key={emotion}
-                    className="px-2 py-1 rounded-full text-xs bg-white/20 capitalize"
+                    className="px-3 py-1 rounded-full text-xs bg-purple-100 text-purple-700 capitalize font-medium"
                   >
                     {emotion}
                   </span>
@@ -125,72 +118,60 @@ const ContentCard: React.FC<ContentCardProps> = ({ content, isPrimaryMatch }) =>
 
               <button
                 onClick={handleLike}
-                className={`p-1 rounded-full transition-colors ${
+                className={`p-2 rounded-full transition-colors ${
                   isLiked 
-                    ? 'text-red-500' 
-                    : 'text-white/60 hover:text-white/80'
+                    ? 'text-red-500 bg-red-50' 
+                    : 'text-gray-400 hover:text-red-500 hover:bg-red-50'
                 }`}
               >
                 <Heart 
-                  className="w-4 h-4" 
+                  className="w-5 h-5" 
                   fill={isLiked ? 'currentColor' : 'none'}
                 />
               </button>
             </div>
           </div>
         </div>
-
-        {isPrimaryMatch && (
-          <div className="mt-3 pt-3 border-t border-white/20">
-            <p className="text-xs opacity-70 italic">
-              Suggested because: Perfect match with your {content.emotions[0]} mood
-            </p>
-          </div>
-        )}
       </div>
     );
   }
 
-  // For video and article content, use DisplayCards
+  // Video and article content with DisplayCards but contained properly
   const displayCardData = [
     {
       icon: getTypeIcon(),
       title: content.title,
       description: content.description,
       date: content.duration,
-      iconClassName: isPrimaryMatch ? theme.primary : "text-blue-500",
-      titleClassName: isPrimaryMatch ? `text-[${theme.primary}]` : "text-blue-500",
-      className: `cursor-pointer transition-all duration-300 hover:scale-105 ${
+      iconClassName: isPrimaryMatch ? "text-purple-500" : "text-blue-500",
+      titleClassName: isPrimaryMatch ? "text-purple-600" : "text-blue-500",
+      className: `cursor-pointer transition-all duration-300 ${
         isPrimaryMatch 
-          ? "[grid-area:stack] hover:-translate-y-4" 
-          : "[grid-area:stack] hover:-translate-y-2"
+          ? "[grid-area:stack] hover:-translate-y-2 border-purple-300" 
+          : "[grid-area:stack] hover:-translate-y-1 border-blue-300"
       }`
     }
   ];
 
   return (
-    <div 
-      className="relative"
-      onClick={handleContentClick}
-    >
+    <div className="relative w-full max-w-sm mx-auto">
       {isPrimaryMatch && (
-        <div 
-          className="absolute -top-2 -right-2 px-2 py-1 rounded-full text-xs font-medium bg-white/90 text-gray-800 z-10"
-          style={{ backgroundColor: `${theme.primary}20`, color: theme.primary }}
-        >
+        <div className="absolute -top-2 -right-2 px-3 py-1 rounded-full text-sm font-bold bg-purple-500 text-white shadow-lg z-20">
           {Math.round(content.matchScore * 100)}% match
         </div>
       )}
 
-      <DisplayCards cards={displayCardData} />
+      <div onClick={handleContentClick} className="relative">
+        <DisplayCards cards={displayCardData} />
+      </div>
 
-      {/* Emotions and Like button overlay */}
-      <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between z-10">
-        <div className="flex space-x-1">
+      {/* Emotions and Like button - positioned better */}
+      <div className="absolute bottom-6 left-6 right-6 flex items-center justify-between z-10">
+        <div className="flex space-x-2">
           {content.emotions.slice(0, 2).map((emotion) => (
             <span
               key={emotion}
-              className="px-2 py-1 rounded-full text-xs bg-white/20 backdrop-blur-sm capitalize text-white"
+              className="px-2 py-1 rounded-full text-xs bg-white/90 text-gray-700 capitalize font-medium shadow-sm"
             >
               {emotion}
             </span>
@@ -199,10 +180,10 @@ const ContentCard: React.FC<ContentCardProps> = ({ content, isPrimaryMatch }) =>
 
         <button
           onClick={handleLike}
-          className={`p-1 rounded-full transition-colors ${
+          className={`p-2 rounded-full transition-colors backdrop-blur-sm ${
             isLiked 
-              ? 'text-red-500' 
-              : 'text-white/60 hover:text-white/80'
+              ? 'text-red-500 bg-white/90' 
+              : 'text-gray-600 hover:text-red-500 bg-white/70 hover:bg-white/90'
           }`}
         >
           <Heart 
@@ -211,14 +192,6 @@ const ContentCard: React.FC<ContentCardProps> = ({ content, isPrimaryMatch }) =>
           />
         </button>
       </div>
-
-      {isPrimaryMatch && (
-        <div className="absolute bottom-0 left-4 right-4 p-2 bg-white/10 backdrop-blur-sm rounded-b-xl">
-          <p className="text-xs opacity-70 italic text-white">
-            Perfect match with your {content.emotions[0]} mood
-          </p>
-        </div>
-      )}
     </div>
   );
 };
