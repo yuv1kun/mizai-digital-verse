@@ -28,13 +28,13 @@ const ContentCard: React.FC<ContentCardProps> = ({ content, isPrimaryMatch }) =>
   const getTypeIcon = () => {
     switch (content.type) {
       case 'video':
-        return <Play className="w-5 h-5" />;
+        return <Play className="size-4 text-blue-300" />;
       case 'article':
-        return <BookOpen className="w-5 h-5" />;
+        return <BookOpen className="size-4 text-blue-300" />;
       case 'music':
         return <Music className="w-5 h-5" />;
       default:
-        return <Play className="w-5 h-5" />;
+        return <Play className="size-4 text-blue-300" />;
     }
   };
 
@@ -60,7 +60,7 @@ const ContentCard: React.FC<ContentCardProps> = ({ content, isPrimaryMatch }) =>
     return albumArts[content.id % albumArts.length];
   };
 
-  // Music content with cleaner layout
+  // Music content with existing clean layout
   if (content.type === 'music') {
     return (
       <div
@@ -136,7 +136,7 @@ const ContentCard: React.FC<ContentCardProps> = ({ content, isPrimaryMatch }) =>
     );
   }
 
-  // Video and article content with DisplayCards but contained properly
+  // Video and article content with enhanced display cards
   const displayCardData = [
     {
       icon: getTypeIcon(),
@@ -147,10 +147,32 @@ const ContentCard: React.FC<ContentCardProps> = ({ content, isPrimaryMatch }) =>
       titleClassName: isPrimaryMatch ? "text-purple-600" : "text-blue-500",
       className: `cursor-pointer transition-all duration-300 ${
         isPrimaryMatch 
-          ? "[grid-area:stack] hover:-translate-y-2 border-purple-300" 
-          : "[grid-area:stack] hover:-translate-y-1 border-blue-300"
+          ? "[grid-area:stack] hover:-translate-y-10 before:absolute before:w-[100%] before:outline-1 before:rounded-xl before:outline-border before:h-[100%] before:content-[''] before:bg-blend-overlay before:bg-background/50 grayscale-[100%] hover:before:opacity-0 before:transition-opacity before:duration-700 hover:grayscale-0 before:left-0 before:top-0 border-purple-300" 
+          : "[grid-area:stack] hover:-translate-y-10 before:absolute before:w-[100%] before:outline-1 before:rounded-xl before:outline-border before:h-[100%] before:content-[''] before:bg-blend-overlay before:bg-background/50 grayscale-[100%] hover:before:opacity-0 before:transition-opacity before:duration-700 hover:grayscale-0 before:left-0 before:top-0"
       }`
-    }
+    },
+    {
+      icon: <Sparkles className="size-4 text-blue-300" />,
+      title: `${content.emotions[0]} content`,
+      description: "Emotion-based recommendation",
+      date: "Perfect match",
+      iconClassName: isPrimaryMatch ? "text-purple-400" : "text-blue-400",
+      titleClassName: isPrimaryMatch ? "text-purple-500" : "text-blue-400",
+      className: `[grid-area:stack] translate-x-16 translate-y-10 hover:-translate-y-1 before:absolute before:w-[100%] before:outline-1 before:rounded-xl before:outline-border before:h-[100%] before:content-[''] before:bg-blend-overlay before:bg-background/50 grayscale-[100%] hover:before:opacity-0 before:transition-opacity before:duration-700 hover:grayscale-0 before:left-0 before:top-0 ${
+        isPrimaryMatch ? 'border-purple-200' : ''
+      }`
+    },
+    {
+      icon: getTypeIcon(),
+      title: `${Math.round(content.matchScore * 100)}% match`,
+      description: "AI recommendation score",
+      date: "Personalized",
+      iconClassName: isPrimaryMatch ? "text-purple-300" : "text-blue-300",
+      titleClassName: isPrimaryMatch ? "text-purple-400" : "text-blue-300",
+      className: `[grid-area:stack] translate-x-32 translate-y-20 hover:translate-y-10 ${
+        isPrimaryMatch ? 'border-purple-100' : ''
+      }`
+    },
   ];
 
   return (
@@ -165,13 +187,17 @@ const ContentCard: React.FC<ContentCardProps> = ({ content, isPrimaryMatch }) =>
         <DisplayCards cards={displayCardData} />
       </div>
 
-      {/* Emotions and Like button - positioned better */}
-      <div className="absolute bottom-6 left-6 right-6 flex items-center justify-between z-10">
+      {/* Emotions and Like button positioned above the cards */}
+      <div className="absolute -bottom-4 left-0 right-0 flex items-center justify-between z-10 px-4">
         <div className="flex space-x-2">
           {content.emotions.slice(0, 2).map((emotion) => (
             <span
               key={emotion}
-              className="px-2 py-1 rounded-full text-xs bg-white/90 text-gray-700 capitalize font-medium shadow-sm"
+              className={`px-3 py-1 rounded-full text-xs font-medium shadow-sm ${
+                isPrimaryMatch 
+                  ? 'bg-purple-100 text-purple-700'
+                  : 'bg-blue-100 text-blue-700'
+              }`}
             >
               {emotion}
             </span>
@@ -180,10 +206,12 @@ const ContentCard: React.FC<ContentCardProps> = ({ content, isPrimaryMatch }) =>
 
         <button
           onClick={handleLike}
-          className={`p-2 rounded-full transition-colors backdrop-blur-sm ${
+          className={`p-2 rounded-full transition-colors backdrop-blur-sm shadow-sm ${
             isLiked 
-              ? 'text-red-500 bg-white/90' 
-              : 'text-gray-600 hover:text-red-500 bg-white/70 hover:bg-white/90'
+              ? 'text-red-500 bg-red-50' 
+              : `text-gray-600 hover:text-red-500 ${
+                  isPrimaryMatch ? 'bg-purple-50 hover:bg-red-50' : 'bg-blue-50 hover:bg-red-50'
+                }`
           }`}
         >
           <Heart 
