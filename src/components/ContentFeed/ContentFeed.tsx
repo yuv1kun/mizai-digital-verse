@@ -1,9 +1,9 @@
-
 import React from 'react';
 import { useMood } from '../../contexts/MoodContext';
 import { useAdaptiveUI } from '../../contexts/AdaptiveUIContext';
 import ContentCard from './ContentCard';
 import RecommendationExplanation from './RecommendationExplanation';
+import { TextShimmer } from '../ui/text-shimmer';
 
 // Mock content data with emotion mappings
 const mockContent = [
@@ -83,52 +83,77 @@ const ContentFeed: React.FC = () => {
     .sort((a, b) => b.matchScore - a.matchScore);
 
   return (
-    <div className="space-y-6">
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold mb-2">Personalized for You</h2>
+    <div className="space-y-8">
+      <div className="text-center mb-12">
+        <TextShimmer 
+          duration={1.5}
+          className="text-4xl font-bold mb-4"
+        >
+          Personalized for You
+        </TextShimmer>
         <RecommendationExplanation currentMood={mood.primaryEmotion} />
       </div>
 
       {recommendedContent.length > 0 && (
-        <section className="space-y-4">
-          <h3 className="text-xl font-semibold flex items-center">
-            <span className="mr-3">🎯</span>
-            Perfectly Matched ({recommendedContent.length})
+        <section className="space-y-6">
+          <h3 className="text-2xl font-semibold flex items-center">
+            <span className="mr-3 text-2xl">🎯</span>
+            <TextShimmer 
+              duration={2}
+              className="font-bold"
+            >
+              Perfectly Matched ({recommendedContent.length})
+            </TextShimmer>
           </h3>
           
-          <div className={`grid gap-4 ${
+          <div className={`grid gap-6 ${
             theme.layout === 'carousel' 
               ? 'grid-cols-1 md:grid-cols-2' 
               : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
           }`}>
-            {recommendedContent.map((content) => (
-              <ContentCard
+            {recommendedContent.map((content, index) => (
+              <div 
                 key={content.id}
-                content={content}
-                isPrimaryMatch={true}
-              />
+                className="transform transition-all duration-500 hover:scale-105"
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                <ContentCard
+                  content={content}
+                  isPrimaryMatch={true}
+                />
+              </div>
             ))}
           </div>
         </section>
       )}
 
-      <section className="space-y-4">
-        <h3 className="text-xl font-semibold flex items-center">
-          <span className="mr-3">🌟</span>
-          You Might Also Like
+      <section className="space-y-6">
+        <h3 className="text-2xl font-semibold flex items-center">
+          <span className="mr-3 text-2xl">🌟</span>
+          <TextShimmer 
+            duration={2.2}
+            className="font-bold"
+          >
+            You Might Also Like
+          </TextShimmer>
         </h3>
         
-        <div className={`grid gap-4 ${
+        <div className={`grid gap-6 ${
           theme.layout === 'carousel' 
             ? 'grid-cols-1 md:grid-cols-2' 
             : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
         }`}>
-          {otherContent.slice(0, 6).map((content) => (
-            <ContentCard
+          {otherContent.slice(0, 6).map((content, index) => (
+            <div 
               key={content.id}
-              content={content}
-              isPrimaryMatch={false}
-            />
+              className="transform transition-all duration-500 hover:scale-105"
+              style={{ animationDelay: `${(index + recommendedContent.length) * 0.1}s` }}
+            >
+              <ContentCard
+                content={content}
+                isPrimaryMatch={false}
+              />
+            </div>
           ))}
         </div>
       </section>
