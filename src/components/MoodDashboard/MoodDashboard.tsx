@@ -5,7 +5,6 @@ import { useAdaptiveUI } from '../../contexts/AdaptiveUIContext';
 import Header from '../Header/Header';
 import MoodInput from '../MoodInput/MoodInput';
 import ContentFeed from '../ContentFeed/ContentFeed';
-import MusicLibrary from '../MusicUpload/MusicLibrary';
 import MusicPlayer from '../MediaPlayers/MusicPlayer';
 import { TextShimmer } from '../ui/text-shimmer';
 import MusicArtwork from '../ui/music-artwork';
@@ -135,20 +134,10 @@ const MoodDashboard: React.FC = () => {
           <MoodInput />
         </div>
 
-        {/* Music Library Section */}
-        <div className="space-y-8">
-          <div className="text-center">
-            <h2 className="text-4xl font-bold text-purple-600 mb-4">🎵 Your Music</h2>
-            <p className="text-gray-600 text-lg">Discover and play music that matches your mood</p>
-          </div>
-          
-          <MusicLibrary onPlayMusic={handlePlayMusic} />
-        </div>
-
         {/* Personalized Content - Only show after mood analysis */}
         {showPersonalizedContent && (
           <div className="animate-in fade-in-0 duration-1000">
-            <ContentFeed />
+            <ContentFeed onPlayMusic={handlePlayMusic} />
           </div>
         )}
       </main>

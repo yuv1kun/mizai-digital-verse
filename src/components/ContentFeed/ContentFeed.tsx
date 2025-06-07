@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useMood } from '../../contexts/MoodContext';
 import { useAdaptiveUI } from '../../contexts/AdaptiveUIContext';
@@ -11,7 +10,11 @@ import { TextShimmer } from '../ui/text-shimmer';
 import { Play, BookOpen, Music } from 'lucide-react';
 import { Content, contentService } from '../../services/contentService';
 
-const ContentFeed: React.FC = () => {
+interface ContentFeedProps {
+  onPlayMusic?: (content: Content) => void;
+}
+
+const ContentFeed: React.FC<ContentFeedProps> = ({ onPlayMusic }) => {
   const { mood } = useMood();
   const { theme } = useAdaptiveUI();
   const [content, setContent] = useState<Content[]>([]);
@@ -54,10 +57,16 @@ const ContentFeed: React.FC = () => {
   };
 
   const handlePlayContent = (selectedContent: Content) => {
-    setActivePlayer({
-      type: selectedContent.type as 'music' | 'video' | 'article',
-      content: selectedContent
-    });
+    if (selectedContent.type === 'music' && onPlayMusic) {
+      // Use the parent's music player for music content
+      onPlayMusic(selectedContent);
+    } else {
+      // Use local players for video and article content
+      setActivePlayer({
+        type: selectedContent.type as 'music' | 'video' | 'article',
+        content: selectedContent
+      });
+    }
   };
 
   const closePlayer = () => {
@@ -247,15 +256,9 @@ const ContentFeed: React.FC = () => {
         </div>
       </div>
 
-      {/* Media Players */}
-      {activePlayer && (
+      {/* Media Players - Only for video and article content */}
+      {activePlayer && activePlayer.type !== 'music' && (
         <>
-          {activePlayer.type === 'music' && (
-            <MusicPlayer
-              content={activePlayer.content}
-              onClose={closePlayer}
-            />
-          )}
           {activePlayer.type === 'video' && (
             <VideoPlayer
               content={activePlayer.content}

@@ -14,7 +14,7 @@ export const seedMusicData = async () => {
       return false;
     }
 
-    // Define the new music data
+    // Define the new music data with love and excitement emotions
     const musicData = [
       {
         type: 'music',
@@ -22,7 +22,7 @@ export const seedMusicData = async () => {
         description: 'Beautiful rendition by Anoop Rathod',
         url: 'https://pszlzaddcjenamoxxcjt.supabase.co/storage/v1/object/public/music//Maula%20Mere%20Maula%20by%20Anoop%20Rathod.mp3',
         duration: '0:00', // Will be updated when played
-        emotions: ['peaceful', 'spiritual', 'calming'],
+        emotions: ['love', 'peaceful', 'spiritual'],
         metadata: {
           artist: 'Anoop Rathod',
           genre: 'Indian Classical',
@@ -35,7 +35,7 @@ export const seedMusicData = async () => {
         description: 'Indie rock classic by Arctic Monkeys',
         url: 'https://pszlzaddcjenamoxxcjt.supabase.co/storage/v1/object/public/music//Wanna%20Be%20Yours%20by%20Arctic%20Monkeys.mp3',
         duration: '0:00', // Will be updated when played
-        emotions: ['romantic', 'dreamy', 'indie'],
+        emotions: ['love', 'excitement', 'romantic'],
         metadata: {
           artist: 'Arctic Monkeys',
           genre: 'Indie Rock',
@@ -48,7 +48,7 @@ export const seedMusicData = async () => {
         description: 'Atmospheric track by Lana Del Rey',
         url: 'https://pszlzaddcjenamoxxcjt.supabase.co/storage/v1/object/public/music//West%20Coast%20by%20Lana%20Del%20Rey.mp3',
         duration: '0:00', // Will be updated when played
-        emotions: ['dreamy', 'melancholic', 'atmospheric'],
+        emotions: ['love', 'excitement', 'dreamy'],
         metadata: {
           artist: 'Lana Del Rey',
           genre: 'Alternative Pop',
