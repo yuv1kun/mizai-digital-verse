@@ -37,31 +37,27 @@ export const useAudioPlayer = ({ content, onTrackEnd, onError }: UseAudioPlayerP
     setState(prev => ({ ...prev, ...updates }));
   }, []);
 
-  // Handle audio URL processing
+  // Handle audio URL processing - only when content.url changes
   useEffect(() => {
-    const processAudioUrl = () => {
-      if (YouTubeService.isYouTubeUrl(content.url)) {
-        // For YouTube URLs, show a clear error message
-        const errorMsg = 'YouTube playback is not currently supported. Please use direct audio file URLs (.mp3, .wav, etc.) for music playback.';
-        updateState({ 
-          error: errorMsg, 
-          isLoading: false, 
-          isExtracting: false,
-          extractedAudioUrl: null
-        });
-        onError?.(errorMsg);
-      } else {
-        // For direct audio URLs (including Supabase storage), proceed normally
-        updateState({ 
-          extractedAudioUrl: content.url,
-          error: null,
-          isLoading: true 
-        });
-      }
-    };
-
-    processAudioUrl();
-  }, [content.url, updateState, onError]);
+    if (YouTubeService.isYouTubeUrl(content.url)) {
+      // For YouTube URLs, show a clear error message
+      const errorMsg = 'YouTube playback is not currently supported. Please use direct audio file URLs (.mp3, .wav, etc.) for music playback.';
+      updateState({ 
+        error: errorMsg, 
+        isLoading: false, 
+        isExtracting: false,
+        extractedAudioUrl: null
+      });
+      onError?.(errorMsg);
+    } else {
+      // For direct audio URLs (including Supabase storage), proceed normally
+      updateState({ 
+        extractedAudioUrl: content.url,
+        error: null,
+        isLoading: true 
+      });
+    }
+  }, [content.url, onError]); // Remove updateState from dependencies to prevent infinite loop
 
   useEffect(() => {
     const audio = audioRef.current;
