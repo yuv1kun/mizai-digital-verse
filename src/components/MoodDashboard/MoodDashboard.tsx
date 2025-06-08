@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useMood } from '../../contexts/MoodContext';
 import { useAdaptiveUI } from '../../contexts/AdaptiveUIContext';
@@ -10,10 +9,13 @@ import { TextShimmer } from '../ui/text-shimmer';
 import MusicArtwork from '../ui/music-artwork';
 import HexagonLoader from '../ui/hexagon-loader';
 import { Content } from '../../services/contentService';
-
 const MoodDashboard: React.FC = () => {
-  const { mood } = useMood();
-  const { theme } = useAdaptiveUI();
+  const {
+    mood
+  } = useMood();
+  const {
+    theme
+  } = useAdaptiveUI();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showPersonalizedContent, setShowPersonalizedContent] = useState(false);
   const [lastMoodUpdate, setLastMoodUpdate] = useState<Date | null>(null);
@@ -21,7 +23,7 @@ const MoodDashboard: React.FC = () => {
 
   // Sample music data based on mood
   const getMoodMusic = () => {
-    switch(mood.primaryEmotion) {
+    switch (mood.primaryEmotion) {
       case 'joy':
         return {
           artist: "Pharrell Williams",
@@ -48,7 +50,6 @@ const MoodDashboard: React.FC = () => {
         };
     }
   };
-
   const moodBasedMusic = getMoodMusic();
 
   // Watch for mood changes to trigger loading and content reveal
@@ -57,7 +58,7 @@ const MoodDashboard: React.FC = () => {
       if (mood.primaryEmotion !== 'calm' || mood.arousalLevel !== 0.3) {
         setIsAnalyzing(true);
         setLastMoodUpdate(mood.lastUpdated);
-        
+
         // Simulate analysis time
         setTimeout(() => {
           setIsAnalyzing(false);
@@ -66,23 +67,16 @@ const MoodDashboard: React.FC = () => {
       }
     }
   }, [mood.lastUpdated, lastMoodUpdate, mood.primaryEmotion, mood.arousalLevel]);
-
   const handlePlayMusic = (content: Content) => {
     setCurrentPlayingMusic(content);
   };
-
   const handleClosePlayer = () => {
     setCurrentPlayingMusic(null);
   };
-
-  return (
-    <div 
-      className={`min-h-screen transition-all duration-1000 ease-in-out ${theme.backgroundStyle}`}
-      style={{ 
-        background: `${theme.gradient}, ${theme.backgroundStyle}`,
-        color: theme.textColor 
-      }}
-    >
+  return <div className={`min-h-screen transition-all duration-1000 ease-in-out ${theme.backgroundStyle}`} style={{
+    background: `${theme.gradient}, ${theme.backgroundStyle}`,
+    color: theme.textColor
+  }}>
       {isAnalyzing && <HexagonLoader />}
       
       <Header />
@@ -92,10 +86,7 @@ const MoodDashboard: React.FC = () => {
         <div className="text-center mb-16 space-y-8">
           <div className="space-y-6">
             <h1 className="text-7xl font-bold mb-6">
-              <TextShimmer 
-                duration={1.5}
-                className="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600 font-extrabold"
-              >
+              <TextShimmer duration={1.5} className="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600 font-extrabold">
                 mizai
               </TextShimmer>
             </h1>
@@ -109,24 +100,13 @@ const MoodDashboard: React.FC = () => {
 
           {/* User Acknowledgment with Text Shimmer */}
           <div className="mb-8">
-            <TextShimmer 
-              duration={2}
-              className="text-xl font-medium text-blue-600 dark:text-blue-400"
-            >
+            <TextShimmer duration={2} className="text-xl font-medium text-blue-600 dark:text-blue-400">
               Hi, how are you feeling today?
             </TextShimmer>
           </div>
 
           {/* Music Artwork Display */}
-          <div className="flex justify-center py-8">
-            <MusicArtwork
-              artist={moodBasedMusic.artist}
-              music={moodBasedMusic.music}
-              albumArt={moodBasedMusic.albumArt}
-              isSong={true}
-              isLoading={false}
-            />
-          </div>
+          
         </div>
 
         {/* Mood Input Section */}
@@ -135,22 +115,13 @@ const MoodDashboard: React.FC = () => {
         </div>
 
         {/* Personalized Content - Only show after mood analysis */}
-        {showPersonalizedContent && (
-          <div className="animate-in fade-in-0 duration-1000">
+        {showPersonalizedContent && <div className="animate-in fade-in-0 duration-1000">
             <ContentFeed onPlayMusic={handlePlayMusic} />
-          </div>
-        )}
+          </div>}
       </main>
 
       {/* Music Player */}
-      {currentPlayingMusic && (
-        <MusicPlayer 
-          content={currentPlayingMusic} 
-          onClose={handleClosePlayer}
-        />
-      )}
-    </div>
-  );
+      {currentPlayingMusic && <MusicPlayer content={currentPlayingMusic} onClose={handleClosePlayer} />}
+    </div>;
 };
-
 export default MoodDashboard;
