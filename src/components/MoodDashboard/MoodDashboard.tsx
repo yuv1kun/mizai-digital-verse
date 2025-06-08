@@ -9,17 +9,38 @@ import { TextShimmer } from '../ui/text-shimmer';
 import MusicArtwork from '../ui/music-artwork';
 import HexagonLoader from '../ui/hexagon-loader';
 import { Content } from '../../services/contentService';
+
 const MoodDashboard: React.FC = () => {
-  const {
-    mood
-  } = useMood();
-  const {
-    theme
-  } = useAdaptiveUI();
+  const { mood } = useMood();
+  const { theme } = useAdaptiveUI();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showPersonalizedContent, setShowPersonalizedContent] = useState(false);
   const [lastMoodUpdate, setLastMoodUpdate] = useState<Date | null>(null);
   const [currentPlayingMusic, setCurrentPlayingMusic] = useState<Content | null>(null);
+
+  // Mood-based images
+  const getMoodImage = () => {
+    switch (mood.primaryEmotion) {
+      case 'calm':
+        return 'https://www.shutterstock.com/image-photo/soft-gently-wind-grass-flowers-600nw-1919586134.jpg';
+      case 'joy':
+        return 'https://wallpapercave.com/wp/wp5910085.jpg';
+      case 'excitement':
+        return 'https://c4.wallpaperflare.com/wallpaper/766/348/908/birds-happy-mood-silhouette-exciting-wallpaper-thumb.jpg';
+      case 'love':
+        return 'https://i.pinimg.com/736x/71/5b/a4/715ba46666e2a80e68f1f7ffa77a8108.jpg';
+      case 'anger':
+        return 'https://i.pinimg.com/474x/9e/54/b3/9e54b34b26fe271a8244ef8020336b45.jpg';
+      case 'sadness':
+        return 'https://w0.peakpx.com/wallpaper/933/159/HD-wallpaper-sad-emotional-sad-anime-boy-with-crows-background-sad-anime-boy-thumbnail.jpg';
+      case 'fear':
+        return 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQdE_nPzDx8rEKRv_UoIqQac77rOG0DTNt_Iw&s';
+      case 'surprise':
+        return 'https://www.shutterstock.com/image-photo/excited-young-woman-amazed-by-260nw-1934342621.jpg';
+      default:
+        return 'https://www.shutterstock.com/image-photo/soft-gently-wind-grass-flowers-600nw-1919586134.jpg';
+    }
+  };
 
   // Sample music data based on mood
   const getMoodMusic = () => {
@@ -73,10 +94,11 @@ const MoodDashboard: React.FC = () => {
   const handleClosePlayer = () => {
     setCurrentPlayingMusic(null);
   };
-  return <div className={`min-h-screen transition-all duration-1000 ease-in-out ${theme.backgroundStyle}`} style={{
-    background: `${theme.gradient}, ${theme.backgroundStyle}`,
-    color: theme.textColor
-  }}>
+  return (
+    <div className={`min-h-screen transition-all duration-1000 ease-in-out ${theme.backgroundStyle}`} style={{
+      background: `${theme.gradient}, ${theme.backgroundStyle}`,
+      color: theme.textColor
+    }}>
       {isAnalyzing && <HexagonLoader />}
       
       <Header />
@@ -105,8 +127,22 @@ const MoodDashboard: React.FC = () => {
             </TextShimmer>
           </div>
 
-          {/* Music Artwork Display */}
-          
+          {/* Mood-based Background Image */}
+          <div className="mb-8 mx-auto max-w-4xl">
+            <div className="relative h-64 md:h-80 lg:h-96 rounded-2xl overflow-hidden shadow-2xl">
+              <img
+                src={getMoodImage()}
+                alt={`${mood.primaryEmotion} mood visualization`}
+                className="w-full h-full object-cover transition-all duration-1000 ease-in-out"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+              <div className="absolute bottom-4 left-4 right-4">
+                <p className="text-white text-lg font-medium capitalize">
+                  Current mood: {mood.primaryEmotion}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Mood Input Section */}
@@ -115,13 +151,19 @@ const MoodDashboard: React.FC = () => {
         </div>
 
         {/* Personalized Content - Only show after mood analysis */}
-        {showPersonalizedContent && <div className="animate-in fade-in-0 duration-1000">
+        {showPersonalizedContent && (
+          <div className="animate-in fade-in-0 duration-1000">
             <ContentFeed onPlayMusic={handlePlayMusic} />
-          </div>}
+          </div>
+        )}
       </main>
 
       {/* Music Player */}
-      {currentPlayingMusic && <MusicPlayer content={currentPlayingMusic} onClose={handleClosePlayer} />}
-    </div>;
+      {currentPlayingMusic && (
+        <MusicPlayer content={currentPlayingMusic} onClose={handleClosePlayer} />
+      )}
+    </div>
+  );
 };
+
 export default MoodDashboard;
