@@ -108,7 +108,7 @@ const MoodDashboard: React.FC = () => {
         <div className="text-center mb-16 space-y-8">
           <div className="space-y-6">
             <h1 className="text-7xl font-bold mb-6">
-              <TextShimmer duration={1.5} className="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600 font-extrabold">
+              <TextShimmer duration={3} className="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600 font-extrabold">
                 mizai
               </TextShimmer>
             </h1>
@@ -122,7 +122,7 @@ const MoodDashboard: React.FC = () => {
 
           {/* User Acknowledgment with Text Shimmer */}
           <div className="mb-8">
-            <TextShimmer duration={2} className="text-xl font-medium text-blue-600 dark:text-blue-400">
+            <TextShimmer duration={3.5} className="text-xl font-medium text-blue-600 dark:text-blue-400">
               Hi, how are you feeling today?
             </TextShimmer>
           </div>
