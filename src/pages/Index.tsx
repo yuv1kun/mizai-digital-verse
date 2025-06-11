@@ -4,7 +4,11 @@ import MoodDashboard from '../components/MoodDashboard/MoodDashboard';
 import { MoodProvider } from '../contexts/MoodContext';
 import { AdaptiveUIProvider } from '../contexts/AdaptiveUIContext';
 
+console.log('Index.tsx loading...')
+
 const Index = () => {
+  console.log('Index component rendering...')
+  
   return (
     <MoodProvider>
       <AdaptiveUIProvider>
