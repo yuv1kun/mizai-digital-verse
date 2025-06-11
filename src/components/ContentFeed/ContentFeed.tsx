@@ -77,7 +77,7 @@ const ContentFeed: React.FC<ContentFeedProps> = ({ onPlayMusic }) => {
     return (
       <div className="max-w-7xl mx-auto space-y-16 px-4">
         <div className="text-center">
-          <TextShimmer speed="fast" className="text-2xl">
+          <TextShimmer duration={1.5} className="text-2xl">
             Loading personalized content...
           </TextShimmer>
         </div>
