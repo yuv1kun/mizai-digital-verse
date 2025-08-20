@@ -2,8 +2,6 @@
 
 A modern digital platform built with React and TypeScript, featuring an adaptive UI system and integrated media playback capabilities.
 
-![Mizai Logo](public/favicon.ico)
-
 ## 🚀 Overview
 
 Mizai is a full-stack web application that provides a rich digital experience with customizable UI, integrated media playback, and real-time data handling. The application features an adaptive interface that responds to user preferences and behaviors, creating a personalized digital verse.
