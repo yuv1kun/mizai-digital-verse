@@ -2,8 +2,6 @@
 
 A modern digital platform built with React and TypeScript, featuring an adaptive UI system and integrated media playback capabilities.
 
-![Mizai Logo](public/favicon.ico)
-
 ## 🚀 Overview
 
 Mizai Digital Verse is a cutting-edge full-stack web application designed to create immersive digital experiences through adaptive interfaces and rich media integration. The platform serves as a personalized digital environment where content, UI, and interactions evolve based on user preferences and behaviors.
